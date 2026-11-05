@@ -156,7 +156,6 @@
     .bg-Yellow { background-color: #facc15; }
     .bg-Green { background-color: #10b981; }
 
-    /* Fix Camera Frame Overlap & Duplicate Viewports */
     .scanner-wrapper { 
       position: relative; 
       width: 100%; 
@@ -190,7 +189,6 @@
       display: block !important;
     }
 
-    /* Hide html5-qrcode unused internal elements */
     #reader__dashboard,
     #reader__dashboard_section_csr,
     #reader__dashboard_section_swaplink,
@@ -227,12 +225,65 @@
     }
     .input-rect::placeholder { color: rgba(255,255,255,0.7); }
 
-    .controls-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
-    select, input[type="date"] {
-      padding: 6px 8px; border: 2.5px solid var(--dp-color-ink); font-family: inherit; font-weight: 600; font-size: 0.85rem; flex: 1; min-width: 110px;
+    /* Date Box Control Styling */
+    .controls-row { 
+      display: flex; 
+      gap: 8px; 
+      margin-bottom: 12px; 
+      flex-wrap: wrap; 
+      align-items: center;
     }
+    
+    select {
+      padding: 6px 10px; 
+      border: 2.5px solid var(--dp-color-ink); 
+      font-family: inherit; 
+      font-weight: 700; 
+      font-size: 0.85rem; 
+      background: #ffffff;
+      outline: none;
+      min-width: 140px;
+    }
+
+    .date-field-group {
+      display: flex;
+      align-items: center;
+      border: 2.5px solid var(--dp-color-ink);
+      background: #ffffff;
+      padding: 2px 6px;
+      gap: 6px;
+      flex: 1;
+      min-width: 155px;
+    }
+
+    .date-field-group label {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--dp-color-ink);
+      user-select: none;
+    }
+
+    .date-field-group input[type="date"] {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.85rem;
+      outline: none;
+      width: 100%;
+      cursor: pointer;
+    }
+
     .btn-square {
-      background: var(--dp-color-field); color: white; border: 2.5px solid var(--dp-color-ink); padding: 6px 12px; cursor: pointer; font-weight: 700; font-size: 0.85rem;
+      background: var(--dp-color-field); 
+      color: white; 
+      border: 2.5px solid var(--dp-color-ink); 
+      padding: 6px 12px; 
+      cursor: pointer; 
+      font-weight: 700; 
+      font-size: 0.85rem;
     }
 
     .lookup-container {
@@ -242,7 +293,6 @@
       margin-top: 8px;
     }
 
-    /* Bauhaus Confirmation Modal */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -342,8 +392,16 @@
         <option value="today">Today's Live</option>
         <option value="thisWeek">This Week</option>
       </select>
-      <input type="date" id="startDate" onchange="refreshLeaderboard()">
-      <input type="date" id="endDate" onchange="refreshLeaderboard()">
+
+      <div class="date-field-group">
+        <label for="startDate">From:</label>
+        <input type="date" id="startDate" onchange="refreshLeaderboard()">
+      </div>
+
+      <div class="date-field-group">
+        <label for="endDate">To:</label>
+        <input type="date" id="endDate" onchange="refreshLeaderboard()">
+      </div>
     </div>
 
     <div class="grid-rules">
