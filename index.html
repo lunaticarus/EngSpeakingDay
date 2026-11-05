@@ -156,6 +156,7 @@
     .bg-Yellow { background-color: #facc15; }
     .bg-Green { background-color: #10b981; }
 
+    /* Fix Camera Frame Overlap & Duplicate Viewports */
     .scanner-wrapper { 
       position: relative; 
       width: 100%; 
@@ -164,28 +165,37 @@
       overflow: hidden;
       border: 3px solid var(--dp-color-ink);
       background: var(--dp-color-ink);
+      min-height: 180px;
     }
 
     #reader { 
       width: 100% !important; 
       border: none !important;
-      background: var(--dp-color-ink);
-      overflow: hidden;
+      background: var(--dp-color-ink) !important;
+      overflow: hidden !important;
     }
 
-    #reader video, 
-    #reader canvas, 
-    #reader img {
+    #reader__scan_region {
       width: 100% !important;
-      max-width: 100% !important;
-      height: auto !important;
+      height: 220px !important;
+      overflow: hidden !important;
+      background: var(--dp-color-ink) !important;
+    }
+
+    #reader video {
+      width: 100% !important;
+      height: 100% !important;
       max-height: 220px !important;
       object-fit: cover !important;
       display: block !important;
     }
 
+    /* Hide html5-qrcode unused internal elements */
+    #reader__dashboard,
     #reader__dashboard_section_csr,
-    #reader__status_span {
+    #reader__dashboard_section_swaplink,
+    #reader__status_span,
+    #reader img {
       display: none !important;
     }
 
@@ -382,7 +392,7 @@
   </div>
 </div>
 
-<!-- STUDENT SCORE CONFIRMATION MODAL -->
+<!-- STUDENT CONFIRMATION MODAL -->
 <div id="confirmModal" class="modal-overlay">
   <div class="modal-card">
     <div class="modal-title">Confirm Award Point</div>
@@ -455,7 +465,6 @@
   }
 
   window.onload = () => {
-    // 1. Instant load from localStorage cache
     const cachedLeaderboard = localStorage.getItem('cached_leaderboard');
     if (cachedLeaderboard) {
       renderLeaderboards(JSON.parse(cachedLeaderboard));
@@ -463,7 +472,6 @@
 
     loadInitialData(idToken);
 
-    // 2. Automated background sync every 15 seconds
     setInterval(() => {
       refreshLeaderboard(true);
     }, 15000);
@@ -495,7 +503,7 @@
         renderLeaderboards(data.leaderboard);
       }
     } catch (err) {
-      console.error("Initialization sync error:", err);
+      console.error("Init error:", err);
     }
   }
 
@@ -520,26 +528,29 @@
       html5QrcodeScanner.clear().then(() => {
         html5QrcodeScanner = null;
         document.getElementById('scanBtn').innerText = "START SCANNER";
+      }).catch(() => {
+        html5QrcodeScanner = null;
+        document.getElementById('scanBtn').innerText = "START SCANNER";
       });
     } else {
       html5QrcodeScanner = new Html5Qrcode("reader");
       html5QrcodeScanner.start(
         { facingMode: "environment" }, 
-        { fps: 10, qrbox: { width: 220, height: 90 } },
+        { fps: 10, qrbox: { width: 220, height: 90 }, aspectRatio: 1.777778 },
         (decodedText) => { onCodeScanned(decodedText); },
         (error) => {}
       ).then(() => {
         document.getElementById('scanBtn').innerText = "STOP SCANNER";
+      }).catch(err => {
+        alert("Camera error: Check permissions.");
       });
     }
   }
 
-  // Handle Scan Detection & Open Popup
   async function onCodeScanned(scannedId) {
     if (isScanningPaused || pendingStudentData) return;
     isScanningPaused = true;
 
-    // Retrieve Student Info
     try {
       const res = await apiGet('getStudentDetails', { studentId: scannedId });
       if (res.success && res.student) {
@@ -552,7 +563,7 @@
       }
     } catch (e) {
       beepError.play();
-      alert("Network Error fetching student details.");
+      alert("Network error fetching student details.");
       isScanningPaused = false;
     }
   }
