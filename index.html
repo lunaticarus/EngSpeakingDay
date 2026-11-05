@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>English Speaking Day</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <!-- Google 官方 OAuth 2.0 SDK -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap');
+
+    :root {
+      --dp-color-ground: #f5f4ee;
+      --dp-color-ink: #000000;
+      --dp-color-accent: #ff0000;
+      --dp-color-field: #0000ff;
+      --dp-color-field-support: #facc15;
+      --dp-color-quiet: #e8e8e8;
+      --dp-color-on-field: #ffffff;
+      --dp-typography-face: "Space Grotesk", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      background-color: var(--dp-color-ground);
+      color: var(--dp-color-ink);
+      font-family: var(--dp-typography-face);
+      line-height: 1.4;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      border: 3px solid var(--dp-color-ink);
+    }
+
+    @media (min-width: 900px) {
+      .container { flex-direction: row; }
+    }
+
+    .plane-main {
+      flex: 1 1 60%;
+      padding: clamp(12px, 3vw, 36px);
+      border-bottom: 3px solid var(--dp-color-ink);
+    }
+
+    @media (min-width: 900px) {
+      .plane-main {
+        border-bottom: none;
+        border-right: 3px solid var(--dp-color-ink);
+      }
+    }
+
+    .plane-action {
+      flex: 1 1 40%;
+      background-color: var(--dp-color-accent);
+      padding: clamp(12px, 3vw, 36px);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    h1 { 
+      font-size: clamp(1.6rem, 4vw, 2.6rem); 
+      font-weight: 800; 
+      line-height: 1.1; 
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+    }
+
+    h2 { 
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem); 
+      font-weight: 800;
+      text-transform: uppercase;
+      background: var(--dp-color-field-support); 
+      display: inline-block; 
+      padding: 3px 8px; 
+      border: 3px solid var(--dp-color-ink); 
+      margin-bottom: 0.8rem; 
+    }
+
+    h3 { font-size: 1rem; font-weight: 800; text-transform: uppercase; }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .user-badge {
+      background: var(--dp-color-ink);
+      color: var(--dp-color-ground);
+      padding: 4px 10px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 2px solid var(--dp-color-ink);
+    }
+
+    .grand-banner {
+      background: var(--dp-color-ink);
+      color: var(--dp-color-ground);
+      padding: 12px 16px;
+      border: 3px solid var(--dp-color-ink);
+      margin: 12px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .grand-number {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      font-weight: 800;
+      color: var(--dp-color-field-support);
+      line-height: 1;
+    }
+
+    .grid-rules {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0;
+      border: 3px solid var(--dp-color-ink);
+      background: var(--dp-color-ink);
+    }
+    
+    .grid-cell {
+      background: var(--dp-color-ground);
+      padding: 12px;
+      border: 1.5px solid var(--dp-color-ink);
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--dp-color-ink);
+      padding: 6px 4px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .podium-1 { background: #facc15; font-size: 0.95rem; font-weight: 800; border: 2px solid var(--dp-color-ink); margin-bottom: 3px; }
+    .podium-2 { background: #e2e8f0; font-weight: 700; border: 2px solid var(--dp-color-ink); margin-bottom: 3px; }
+    .podium-3 { background: #fdba74; font-weight: 700; border: 2px solid var(--dp-color-ink); margin-bottom: 3px; }
+
+    .house-bar-container { width: 100%; border: 2px solid var(--dp-color-ink); height: 20px; margin-top: 4px; background: var(--dp-color-ground); }
+    .house-bar { height: 100%; transition: width 0.5s ease; }
+    
+    .bg-Red { background-color: #ef4444; }
+    .bg-Purple { background-color: #a855f7; }
+    .bg-Yellow { background-color: #facc15; }
+    .bg-Green { background-color: #10b981; }
+
+    .scanner-wrapper { position: relative; width: 100%; }
+    .camera-ready-bar {
+      position: absolute; top: 0; left: 0; right: 0;
+      background: #10b981; color: white; text-align: center; font-weight: 800;
+      font-size: 0.85rem; padding: 4px; border-bottom: 2px solid var(--dp-color-ink); z-index: 10;
+      display: none; animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+
+    .action-btn-mobile {
+      background: var(--dp-color-ground);
+      color: var(--dp-color-ink);
+      border: 3px solid var(--dp-color-ink);
+      padding: 12px;
+      width: 100%;
+      font-weight: 800;
+      font-size: 1rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 4px 4px 0px var(--dp-color-ink);
+      transition: all 0.1s;
+      margin: 8px 0;
+    }
+    .action-btn-mobile:active { box-shadow: 0px 0px 0px var(--dp-color-ink); transform: translate(4px, 4px); }
+
+    .input-rect {
+      background: var(--dp-color-field);
+      color: var(--dp-color-on-field);
+      border: 3px solid var(--dp-color-ink);
+      padding: 10px 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      width: 100%;
+      outline: none;
+    }
+    .input-rect::placeholder { color: rgba(255,255,255,0.7); }
+
+    #reader { border: 3px solid var(--dp-color-ink); background: var(--dp-color-ink); width: 100%; max-height: 250px; }
+
+    .status-panel {
+      padding: 10px 14px; border: 3px solid var(--dp-color-ink); font-weight: 700; font-size: 0.95rem; display: none; margin-top: 10px;
+    }
+    .status-success { background: #10b981; color: #fff; }
+    .status-warn { background: #facc15; color: #000; }
+    .status-error { background: var(--dp-color-ink); color: #fff; }
+
+    .controls-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    select, input[type="date"] {
+      padding: 6px 8px; border: 2.5px solid var(--dp-color-ink); font-family: inherit; font-weight: 600; font-size: 0.85rem; flex: 1; min-width: 110px;
+    }
+    .btn-square {
+      background: var(--dp-color-field); color: white; border: 2.5px solid var(--dp-color-ink); padding: 6px 12px; cursor: pointer; font-weight: 700; font-size: 0.85rem;
+    }
+
+    .lookup-container {
+      background: var(--dp-color-ground); 
+      padding: 12px; 
+      border: 3px solid var(--dp-color-ink); 
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="plane-main">
+    <div class="header-bar">
+      <h1>English Speaking Day</h1>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <!-- Google Sign-in Button Configuration -->
+        <div id="g_id_onload"
+             data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin" data-type="standard" data-size="small" data-theme="outline"></div>
+        <div class="user-badge" id="userBadge">Public Mode</div>
+      </div>
+    </div>
+
+    <div class="grand-banner">
+      <div>
+        <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Total Interactions</div>
+        <div style="font-size:0.7rem; opacity:0.8;">Campus Conversations</div>
+      </div>
+      <div id="grandTotal" class="grand-number">0</div>
+    </div>
+    
+    <div class="controls-row">
+      <select id="presetRange" onchange="applyPreset()">
+        <option value="all">All-Time Standing</option>
+        <option value="today">Today's Live</option>
+        <option value="thisWeek">This Week</option>
+      </select>
+      <input type="date" id="startDate" onchange="refreshLeaderboard()">
+      <input type="date" id="endDate" onchange="refreshLeaderboard()">
+      <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
+        <input type="checkbox" id="liveRefresh" checked> <b>Live</b>
+      </div>
+    </div>
+
+    <div class="grid-rules">
+      <div class="grid-cell">
+        <h2>Star Student Speakers</h2>
+        <div id="studentList">Loading...</div>
+      </div>
+      <div class="grid-cell">
+        <h2>House Ranking</h2>
+        <div id="houseList">Loading...</div>
+        
+        <h2 style="margin-top:1.2rem;">Top English Groups</h2>
+        <div id="groupList">Loading...</div>
+
+        <h2 style="margin-top:1.2rem;">Outstanding Classes</h2>
+        <div id="classList">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plane-action" id="teacherPanel" style="display:none;">
+    <h2 style="background:var(--dp-color-ground); color:var(--dp-color-ink);">Teacher Terminal</h2>
+    
+    <div class="scanner-wrapper">
+      <div id="readyBar" class="camera-ready-bar">READY FOR NEXT CARD...</div>
+      <div id="reader"></div>
+    </div>
+    
+    <button class="action-btn-mobile" id="scanBtn" onclick="toggleScanner()">Start Scanner</button>
+    
+    <div>
+      <input type="text" id="manualId" class="input-rect" placeholder="Manual ID Entry" onkeypress="if(event.key==='Enter') submitManual()">
+    </div>
+
+    <div id="statusBox" class="status-panel"></div>
+
+    <div class="lookup-container">
+      <h3>Class & Group Lookup</h3>
+      <div class="controls-row" style="margin-top:6px;">
+        <select id="lookupType">
+          <option value="class">Class</option>
+          <option value="group">Eng Group</option>
+        </select>
+        <select id="lookupValue"></select>
+        <button class="btn-square" onclick="lookupScores()">Search</button>
+      </div>
+      <div id="lookupResults" style="max-height:160px; overflow-y:auto; border:2px solid black; padding:6px; display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw8aryp3-LxbJmqSjqRod2yPHyZBCkL1UKfsq_I2ctJcnOXlOYjpYK8IzJAcpd645mi/exec";
+
+  let html5QrcodeScanner = null;
+  let idToken = localStorage.getItem('google_id_token') || '';
+
+  const houseNames = { 'Red': 'Red 仁', 'Purple': 'Purple 愛', 'Yellow': 'Yellow 勤', 'Green': 'Green 誠' };
+  const beepSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
+  const beepError = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+
+  // Google 官方登入成功 Callback
+  function handleCredentialResponse(response) {
+    idToken = response.credential;
+    localStorage.setItem('google_id_token', idToken);
+    loadInitialData();
+  }
+
+  async function apiGet(action, params = {}) {
+    params.action = action;
+    params.idToken = idToken;
+    const queryString = new URLSearchParams(params).toString();
+    const res = await fetch(`${GAS_API_URL}?${queryString}`, { redirect: 'follow' });
+    return await res.json();
+  }
+
+  async function apiPost(action, body = {}) {
+    body.action = action;
+    body.idToken = idToken;
+    const res = await fetch(GAS_API_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+    return await res.json();
+  }
+
+  window.onload = () => {
+    loadInitialData();
+    setInterval(() => {
+      if (document.getElementById('liveRefresh').checked) refreshLeaderboard();
+    }, 12000);
+  };
+
+  async function loadInitialData() {
+    try {
+      const data = await apiGet('getInitialData');
+      const b = document.getElementById('userBadge');
+      
+      if (data.isTeacher) {
+        b.innerText = `Teacher: ${data.userEmail}`;
+        document.getElementById('teacherPanel').style.display = 'flex';
+        loadOptions();
+      } else {
+        if (data.userEmail) {
+          b.innerText = `User: ${data.userEmail} (No Permission)`;
+        } else {
+          b.innerText = 'Public Mode';
+        }
+        document.getElementById('teacherPanel').style.display = 'none';
+      }
+      renderLeaderboards(data.leaderboard);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function loadOptions() {
+    const opts = await apiGet('getFilterOptions');
+    window.dropdownOpts = opts;
+    updateLookupDropdown();
+    document.getElementById('lookupType').addEventListener('change', updateLookupDropdown);
+  }
+
+  function toggleScanner() {
+    if (html5QrcodeScanner) {
+      html5QrcodeScanner.clear();
+      html5QrcodeScanner = null;
+      document.getElementById('scanBtn').innerText = "START SCANNER";
+      document.getElementById('readyBar').style.display = "none";
+    } else {
+      html5QrcodeScanner = new Html5Qrcode("reader");
+      html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 90 } },
+        (decodedText) => { processScore(decodedText); },
+        (error) => {}
+      );
+      document.getElementById('scanBtn').innerText = "STOP SCANNER";
+      document.getElementById('readyBar').style.display = "block";
+    }
+  }
+
+  function submitManual() {
+    const val = document.getElementById('manualId').value;
+    if (val) processScore(val);
+    document.getElementById('manualId').value = "";
+    document.getElementById('manualId').blur();
+  }
+
+  let isProcessing = false;
+  async function processScore(studentId) {
+    if (isProcessing) return;
+    isProcessing = true;
+    document.getElementById('readyBar').style.display = "none";
+    showStatus('Processing...', 'status-warn');
+    
+    try {
+      const res = await apiPost('recordPoint', { studentId: studentId });
+      isProcessing = false;
+      if (res.success) {
+        beepSuccess.play();
+        showStatus(`+1 Point!<br>${res.student.name} (${res.student.className})<br>Total Score: ${res.student.totalScore}`, 'status-success');
+        refreshLeaderboard();
+      } else if (res.cooldown) {
+        beepError.play();
+        showStatus(res.message, 'status-warn');
+      } else {
+        beepError.play();
+        showStatus(res.message, 'status-error');
+      }
+    } catch (err) {
+      isProcessing = false;
+      beepError.play();
+      showStatus('Network Error.', 'status-error');
+    }
+
+    setTimeout(() => {
+      if (html5QrcodeScanner) document.getElementById('readyBar').style.display = "block";
+    }, 2500);
+  }
+
+  function showStatus(html, className) {
+    const box = document.getElementById('statusBox');
+    box.className = `status-panel ${className}`;
+    box.innerHTML = html;
+    box.style.display = 'block';
+    setTimeout(() => { box.style.display = 'none'; }, 3000);
+  }
+
+  function applyPreset() {
+    const val = document.getElementById('presetRange').value;
+    const now = new Date();
+    if (val === 'today') {
+      const today = now.toISOString().split('T')[0];
+      document.getElementById('startDate').value = today;
+      document.getElementById('endDate').value = today;
+    } else if (val === 'thisWeek') {
+      const day = now.getDay() || 7;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - day + 1);
+      const sunday = new Date(now);
+      sunday.setDate(now.getDate() - day + 7);
+      document.getElementById('startDate').value = monday.toISOString().split('T')[0];
+      document.getElementById('endDate').value = sunday.toISOString().split('T')[0];
+    } else {
+      document.getElementById('startDate').value = "";
+      document.getElementById('endDate').value = "";
+    }
+    refreshLeaderboard();
+  }
+
+  async function refreshLeaderboard() {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    const data = await apiGet('getLeaderboard', { startDate: start, endDate: end });
+    renderLeaderboards(data);
+  }
+
+  function renderLeaderboards(data) {
+    if (!data) return;
+    document.getElementById('grandTotal').innerText = data.totalInteractions || 0;
+
+    const icons = ['🥇', '🥈', '🥉'];
+    document.getElementById('studentList').innerHTML = (data.students || []).map((s, i) => `
+      <div class="stat-row ${i===0?'podium-1':(i===1?'podium-2':(i===2?'podium-3':''))}">
+        <span>${i<3?icons[i]:'#'+(i+1)} ${s.name} (${s.className})</span>
+        <span>${s.score} pt</span>
+      </div>`).join('') || '<div style="padding:8px 0; font-size:0.85rem;">No speaking logs found.</div>';
+
+    const maxHouse = Math.max(...(data.houses || []).map(h => h.score), 1);
+    document.getElementById('houseList').innerHTML = (data.houses || []).map((h, i) => `
+      <div style="margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.85rem;">
+          <span>#${i+1} ${houseNames[h.name] || h.name}</span>
+          <span>${h.score} pt</span>
+        </div>
+        <div class="house-bar-container">
+          <div class="house-bar bg-${h.name}" style="width:${(h.score/maxHouse)*100}%;"></div>
+        </div>
+      </div>`).join('');
+
+    document.getElementById('groupList').innerHTML = (data.groups || []).map((g, i) => `<div class="stat-row"><span>#${i+1} ${g.name}</span><span>${g.score}</span></div>`).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
+    document.getElementById('classList').innerHTML = (data.classes || []).map((c, i) => `<div class="stat-row"><span>#${i+1} ${c.name}</span><span>${c.score}</span></div>`).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
+  }
+
+  function updateLookupDropdown() {
+    const type = document.getElementById('lookupType').value;
+    const arr = type === 'class' ? window.dropdownOpts.classes : window.dropdownOpts.groups;
+    document.getElementById('lookupValue').innerHTML = arr.map(a => `<option value="${a}">${a}</option>`).join('');
+  }
+
+  async function lookupScores() {
+    const type = document.getElementById('lookupType').value;
+    const val = document.getElementById('lookupValue').value;
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDate').value;
+    
+    document.getElementById('lookupResults').innerHTML = 'Loading...';
+    document.getElementById('lookupResults').style.display = 'block';
+
+    const res = await apiGet('getStudentScores', { filterType: type, filterValue: val, startDate: start, endDate: end });
+    if (!res || !res.students || res.students.length === 0) {
+      document.getElementById('lookupResults').innerHTML = 'No students found.';
+      return;
+    }
+    document.getElementById('lookupResults').innerHTML = res.students.map(r => `
+      <div style="display:flex; justify-content:space-between; border-bottom:1px solid #000; padding:3px 0; font-size:0.85rem;">
+        <span>${r.classNo ? r.classNo + '. ' : ''}${r.name}</span><strong>${r.score} pt</strong>
+      </div>
+    `).join('');
+  }
+</script>
+</body>
+</html>
