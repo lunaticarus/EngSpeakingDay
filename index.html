@@ -69,9 +69,7 @@
       overflow: hidden; 
       display: none; 
     }
-    .scanner-wrapper.active {
-      display: block;
-    }
+    .scanner-wrapper.active { display: block; }
 
     #reader { width: 100% !important; border: none !important; background: var(--dp-color-ink) !important; }
     #reader__scan_region { background: var(--dp-color-ink) !important; }
@@ -84,9 +82,13 @@
     .input-rect { background: var(--dp-color-field); color: #fff; border: 3px solid var(--dp-color-ink); padding: 10px 12px; font-size: 1rem; font-weight: 700; width: 100%; outline: none; }
     .input-rect::placeholder { color: rgba(255,255,255,0.7); }
 
-    .controls-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
-    select { padding: 6px 10px; border: 2.5px solid var(--dp-color-ink); font-weight: 700; font-size: 0.85rem; background: #ffffff; min-width: 140px; }
-    .date-field-group { display: flex; align-items: center; border: 2.5px solid var(--dp-color-ink); background: #ffffff; padding: 2px 6px; gap: 6px; flex: 1; min-width: 155px; }
+    /* Controls & Date Layout */
+    .controls-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+    select { padding: 6px 10px; border: 2.5px solid var(--dp-color-ink); font-weight: 700; font-size: 0.85rem; background: #ffffff; width: 100%; max-width: 260px; }
+    
+    .date-row { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
+
+    .date-field-group { display: flex; align-items: center; border: 2.5px solid var(--dp-color-ink); background: #ffffff; padding: 2px 6px; gap: 6px; flex: 1; min-width: 140px; }
     .date-field-group label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--dp-color-ink); }
     .date-field-group input[type="date"] { border: none; background: transparent; font-weight: 600; font-size: 0.85rem; outline: none; width: 100%; cursor: pointer; }
     .btn-square { background: var(--dp-color-field); color: white; border: 2.5px solid var(--dp-color-ink); padding: 6px 12px; cursor: pointer; font-weight: 700; font-size: 0.85rem; }
@@ -118,7 +120,7 @@
       <h1>English Speaking Day</h1>
       <div style="display:flex; align-items:center; gap:8px;">
         <div id="g_id_onload" data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
-        <div class="g_id_signin" data-type="standard" data-size="small" data-theme="outline"></div>
+        <div class="g_id_signin" id="googleSignInContainer" data-type="standard" data-size="small" data-theme="outline"></div>
         <button id="logoutBtn" class="btn-square" style="display:none; padding:4px 8px; font-size:0.75rem; background:#ef4444;" onclick="logout()">Logout</button>
         <div class="user-badge" id="userBadge">Public Mode</div>
       </div>
@@ -138,13 +140,16 @@
         <option value="today">Today's Live</option>
         <option value="thisWeek">This Week</option>
       </select>
-      <div class="date-field-group">
-        <label for="startDate">From:</label>
-        <input type="date" id="startDate" onchange="refreshLeaderboard()">
-      </div>
-      <div class="date-field-group">
-        <label for="endDate">To:</label>
-        <input type="date" id="endDate" onchange="refreshLeaderboard()">
+
+      <div class="date-row">
+        <div class="date-field-group">
+          <label for="startDate">From:</label>
+          <input type="date" id="startDate" onchange="refreshLeaderboard()">
+        </div>
+        <div class="date-field-group">
+          <label for="endDate">To:</label>
+          <input type="date" id="endDate" onchange="refreshLeaderboard()">
+        </div>
       </div>
     </div>
 
@@ -178,15 +183,15 @@
 
     <div class="lookup-container">
       <h3>Class & Group Lookup</h3>
-      <div class="controls-row" style="margin-top:6px;">
-        <select id="lookupType">
+      <div style="display:flex; gap:6px; margin-top:6px; flex-wrap:wrap;">
+        <select id="lookupType" style="flex:1;">
           <option value="class">Class</option>
           <option value="group">Eng Group</option>
         </select>
-        <select id="lookupValue"></select>
+        <select id="lookupValue" style="flex:1;"></select>
         <button class="btn-square" onclick="lookupScores()">Search</button>
       </div>
-      <div id="lookupResults" style="max-height:160px; overflow-y:auto; border:2px solid black; padding:6px; display:none;"></div>
+      <div id="lookupResults" style="max-height:160px; overflow-y:auto; border:2px solid black; padding:6px; margin-top:6px; display:none;"></div>
     </div>
   </div>
 </div>
@@ -229,21 +234,35 @@
     pendingStudentData = null;
   }
 
+  // Update Header Elements State Instantly
+  function updateAuthUI(isLoggedIn, userEmail = '') {
+    const googleBtn = document.getElementById('googleSignInContainer');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userBadge = document.getElementById('userBadge');
+
+    if (isLoggedIn) {
+      if (googleBtn) googleBtn.style.display = 'none';
+      if (logoutBtn) logoutBtn.style.display = 'inline-block';
+      if (userEmail) userBadge.innerText = `Teacher: ${userEmail}`;
+    } else {
+      if (googleBtn) googleBtn.style.display = 'block';
+      if (logoutBtn) logoutBtn.style.display = 'none';
+      userBadge.innerText = 'Public Mode';
+      document.getElementById('teacherPanel').style.display = 'none';
+    }
+  }
+
   function handleCredentialResponse(response) {
     idToken = response.credential;
     localStorage.setItem('google_id_token', idToken);
-    document.querySelector('.g_id_signin').style.display = 'none';
-    document.getElementById('logoutBtn').style.display = 'inline-block';
+    updateAuthUI(true);
     loadInitialData();
   }
 
   function logout() {
     idToken = '';
     localStorage.clear();
-    document.querySelector('.g_id_signin').style.display = 'block';
-    document.getElementById('logoutBtn').style.display = 'none';
-    document.getElementById('teacherPanel').style.display = 'none';
-    document.getElementById('userBadge').innerText = 'Public Mode';
+    updateAuthUI(false);
     loadInitialData();
   }
 
@@ -256,14 +275,18 @@
       const res = await (await fetch(`${GAS_API_URL}?${qs}`)).json();
 
       if (res.isTeacher) {
-        document.getElementById('userBadge').innerText = `Teacher: ${res.userEmail}`;
+        updateAuthUI(true, res.userEmail);
         document.getElementById('teacherPanel').style.display = 'flex';
         localStorage.setItem('cached_students_db', JSON.stringify(res.studentsMap || {}));
         
         window.dropdownOpts = { classes: res.classes || [], groups: res.groups || [] };
         updateLookupDropdown();
       } else {
-        document.getElementById('userBadge').innerText = res.userEmail ? `User: ${res.userEmail} (No Access)` : 'Public Mode';
+        if (idToken) {
+          document.getElementById('userBadge').innerText = res.userEmail ? `User: ${res.userEmail} (No Access)` : 'Public Mode';
+        } else {
+          updateAuthUI(false);
+        }
         document.getElementById('teacherPanel').style.display = 'none';
       }
 
@@ -277,12 +300,18 @@
   }
 
   window.onload = () => {
+    // Check local token synchronously to prevent Google Login button flash on refresh
+    if (idToken) {
+      updateAuthUI(true);
+    } else {
+      updateAuthUI(false);
+    }
+
     loadInitialData();
     setInterval(() => refreshLeaderboard(true), 15000);
     document.getElementById('lookupType').addEventListener('change', updateLookupDropdown);
   };
 
-  // Toggle & Auto-collapse Scanner Container
   async function toggleScanner() {
     const btn = document.getElementById('scanBtn');
     const wrapper = document.getElementById('scannerWrapper');
@@ -292,7 +321,7 @@
     } else {
       btn.innerText = "INITIALIZING...";
       btn.disabled = true;
-      wrapper.classList.add('active'); // Reveal black wrapper box
+      wrapper.classList.add('active');
 
       try {
         html5QrcodeScanner = new Html5Qrcode("reader");
@@ -333,7 +362,7 @@
     }
 
     document.getElementById('reader').innerHTML = '';
-    wrapper.classList.remove('active'); // Collapse and hide black box completely
+    wrapper.classList.remove('active');
     btn.innerText = "START SCANNER";
     btn.disabled = false;
   }
@@ -350,7 +379,6 @@
   async function onCodeScanned(scannedId) {
     if (pendingStudentData) return;
     
-    // Shut down scanner & hide box instantly upon scan
     await stopScanner();
 
     const cleanId = String(scannedId).trim();
@@ -363,7 +391,6 @@
       return;
     }
 
-    // Check Local 60s Cooldown
     let recentScans = JSON.parse(localStorage.getItem('recent_scans') || '{}');
     let now = Date.now();
     let lastScanTime = recentScans[student.id] || 0;
