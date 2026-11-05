@@ -97,7 +97,7 @@
       flex-direction: column; 
       min-height: 100vh; 
       border: 3px solid var(--dp-color-ink); 
-      visibility: hidden; /* Hidden until initial load finishes */
+      visibility: hidden;
     }
     @media (min-width: 900px) { .container { flex-direction: row; } }
 
@@ -185,13 +185,12 @@
 <!-- Hidden Google Credential Listener -->
 <div id="g_id_onload" data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
 
-<!-- LANDING OVERLAY (With Google Login inside) -->
+<!-- LANDING OVERLAY -->
 <div id="landingOverlay">
   <div class="landing-box">
-    <h1 style="font-size:1.8rem;">English Speaking Day</h1>
+    <h1 style="font-size:1.8rem;">English<br>Speaking<br>Day</h1>
     <p style="font-weight:700; font-size:0.85rem; text-transform:uppercase;" id="landingStatus">Sign in with Teacher Account</p>
     
-    <!-- Google Login Button Container inside Landing Screen -->
     <div id="authWrapper" style="display:inline-block; margin: 4px 0;">
       <div class="g_id_signin" id="googleSignInBtn" data-type="standard" data-size="large" data-theme="outline"></div>
     </div>
@@ -204,7 +203,7 @@
 <div class="container" id="mainContainer">
   <div class="plane-main">
     <div class="header-bar">
-      <h1>English Speaking Day</h1>
+      <h1>🌟English Speaking Day🌟</h1>
       <div style="display:flex; align-items:center; gap:8px;">
         <button id="logoutBtn" class="btn-square" style="display:none; padding:4px 8px; font-size:0.75rem; background:#ef4444;" onclick="logout()">Logout</button>
         <div class="user-badge" id="userBadge">Public Mode</div>
@@ -297,7 +296,7 @@
   let idToken = localStorage.getItem('google_id_token') || '';
   let pendingStudentData = null;
 
-  // --- Web Audio Engine ---
+  // --- High-Performance Synthesized Web Audio API Engine ---
   let audioCtx = null;
 
   function initAudioContext() {
@@ -318,26 +317,66 @@
     if (!audioCtx) return;
     const now = audioCtx.currentTime;
 
-    if (type === 'success') {
-      const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-      osc1.type = 'sine'; osc2.type = 'sine';
-      osc1.frequency.setValueAtTime(1318.51, now); osc2.frequency.setValueAtTime(1567.98, now + 0.08);
-      gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-      osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
-      osc1.start(now); osc1.stop(now + 0.08); osc2.start(now + 0.08); osc2.stop(now + 0.3);
-    } else if (type === 'scan') {
-      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-      osc.type = 'triangle'; osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(440, now + 0.05);
-      gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      osc.start(now); osc.stop(now + 0.06);
+    if (type === 'scan') {
+      // Robust Dual-Tone Synth Pop (Scan & Manual Detection)
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc1.type = 'sine'; osc2.type = 'triangle';
+      osc1.frequency.setValueAtTime(880, now);      // A5
+      osc1.frequency.setValueAtTime(1108.73, now + 0.06); // C#6
+      osc2.frequency.setValueAtTime(440, now);
+
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+      osc1.connect(gain); osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc1.start(now); osc1.stop(now + 0.22);
+      osc2.start(now); osc2.stop(now + 0.22);
+
+    } else if (type === 'success') {
+      // Triumphant Ascending Major Triad Chord (Point Award Confirmed)
+      const frequencies = [523.25, 659.25, 783.99, 1046.50]; // C5 -> E5 -> G5 -> C6
+      frequencies.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+
+        gain.gain.setValueAtTime(0.0, now);
+        gain.gain.setValueAtTime(0.3, now + idx * 0.07);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.45);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(now + idx * 0.07);
+        osc.stop(now + idx * 0.07 + 0.45);
+      });
+
     } else if (type === 'error') {
-      const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-      osc1.type = 'sine'; osc2.type = 'sine';
-      osc1.frequency.setValueAtTime(196.00, now); osc2.frequency.setValueAtTime(164.81, now + 0.1);
-      gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-      osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
-      osc1.start(now); osc1.stop(now + 0.1); osc2.start(now + 0.1); osc2.stop(now + 0.35);
+      // Heavy Sawtooth Low Warning Buzz (Error & Cooldown)
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc1.type = 'sawtooth'; osc2.type = 'square';
+      osc1.frequency.setValueAtTime(150, now);
+      osc1.frequency.setValueAtTime(110, now + 0.12);
+      osc2.frequency.setValueAtTime(155, now); // Slightly detuned for heavy resonance
+
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+      osc1.connect(gain); osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc1.start(now); osc1.stop(now + 0.4);
+      osc2.start(now); osc2.stop(now + 0.4);
     }
   }
 
@@ -388,7 +427,7 @@
     idToken = '';
     localStorage.clear();
     updateAuthUI(false);
-    location.reload(); // Hard reset back to Landing Screen
+    location.reload();
   }
 
   async function loadInitialData() {
@@ -408,7 +447,6 @@
         window.dropdownOpts = { classes: res.classes || [], groups: res.groups || [] };
         updateLookupDropdown();
 
-        // Dismiss landing screen if logged in as Teacher
         document.getElementById('landingOverlay').style.display = 'none';
         document.getElementById('mainContainer').style.visibility = 'visible';
       } else {
