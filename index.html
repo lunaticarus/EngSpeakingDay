@@ -15,8 +15,6 @@
       --dp-color-accent: #ff0000;
       --dp-color-field: #0000ff;
       --dp-color-field-support: #facc15;
-      --dp-color-quiet: #e8e8e8;
-      --dp-color-on-field: #ffffff;
       --dp-typography-face: "Space Grotesk", sans-serif;
     }
 
@@ -30,329 +28,72 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    .container {
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      border: 3px solid var(--dp-color-ink);
-    }
+    .container { display: flex; flex-direction: column; min-height: 100vh; border: 3px solid var(--dp-color-ink); }
+    @media (min-width: 900px) { .container { flex-direction: row; } }
 
-    @media (min-width: 900px) {
-      .container { flex-direction: row; }
-    }
+    .plane-main { flex: 1 1 60%; padding: clamp(12px, 3vw, 36px); border-bottom: 3px solid var(--dp-color-ink); }
+    @media (min-width: 900px) { .plane-main { border-bottom: none; border-right: 3px solid var(--dp-color-ink); } }
 
-    .plane-main {
-      flex: 1 1 60%;
-      padding: clamp(12px, 3vw, 36px);
-      border-bottom: 3px solid var(--dp-color-ink);
-    }
+    .plane-action { flex: 1 1 40%; background-color: var(--dp-color-accent); padding: clamp(12px, 3vw, 36px); display: flex; flex-direction: column; gap: 16px; }
 
-    @media (min-width: 900px) {
-      .plane-main {
-        border-bottom: none;
-        border-right: 3px solid var(--dp-color-ink);
-      }
-    }
-
-    .plane-action {
-      flex: 1 1 40%;
-      background-color: var(--dp-color-accent);
-      padding: clamp(12px, 3vw, 36px);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    h1 { 
-      font-size: clamp(1.6rem, 4vw, 2.6rem); 
-      font-weight: 800; 
-      line-height: 1.1; 
-      text-transform: uppercase;
-      letter-spacing: -0.02em;
-    }
-
-    h2 { 
-      font-size: clamp(1.1rem, 2.5vw, 1.4rem); 
-      font-weight: 800;
-      text-transform: uppercase;
-      background: var(--dp-color-field-support); 
-      display: inline-block; 
-      padding: 3px 8px; 
-      border: 3px solid var(--dp-color-ink); 
-      margin-bottom: 0.8rem; 
-    }
-
+    h1 { font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; line-height: 1.1; text-transform: uppercase; letter-spacing: -0.02em; }
+    h2 { font-size: clamp(1.1rem, 2.5vw, 1.4rem); font-weight: 800; text-transform: uppercase; background: var(--dp-color-field-support); display: inline-block; padding: 3px 8px; border: 3px solid var(--dp-color-ink); margin-bottom: 0.8rem; }
     h3 { font-size: 1rem; font-weight: 800; text-transform: uppercase; }
 
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .user-badge { background: var(--dp-color-ink); color: var(--dp-color-ground); padding: 4px 10px; font-size: 0.8rem; font-weight: 700; border: 2px solid var(--dp-color-ink); }
 
-    .user-badge {
-      background: var(--dp-color-ink);
-      color: var(--dp-color-ground);
-      padding: 4px 10px;
-      font-size: 0.8rem;
-      font-weight: 700;
-      border: 2px solid var(--dp-color-ink);
-    }
+    .grand-banner { background: var(--dp-color-ink); color: var(--dp-color-ground); padding: 12px 16px; border: 3px solid var(--dp-color-ink); margin: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+    .grand-number { font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 800; color: var(--dp-color-field-support); line-height: 1; }
 
-    .grand-banner {
-      background: var(--dp-color-ink);
-      color: var(--dp-color-ground);
-      padding: 12px 16px;
-      border: 3px solid var(--dp-color-ink);
-      margin: 12px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .grid-rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); border: 3px solid var(--dp-color-ink); background: var(--dp-color-ink); gap: 0; }
+    .grid-cell { background: var(--dp-color-ground); padding: 12px; border: 1.5px solid var(--dp-color-ink); }
 
-    .grand-number {
-      font-size: clamp(1.8rem, 4vw, 2.4rem);
-      font-weight: 800;
-      color: var(--dp-color-field-support);
-      line-height: 1;
-    }
-
-    .grid-rules {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 0;
-      border: 3px solid var(--dp-color-ink);
-      background: var(--dp-color-ink);
-    }
-    
-    .grid-cell {
-      background: var(--dp-color-ground);
-      padding: 12px;
-      border: 1.5px solid var(--dp-color-ink);
-    }
-
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 2px solid var(--dp-color-ink);
-      padding: 6px 4px;
-      font-size: 0.9rem;
-      font-weight: 600;
-    }
-
+    .stat-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--dp-color-ink); padding: 6px 4px; font-size: 0.9rem; font-weight: 600; }
     .podium-1 { background: #facc15; font-size: 0.95rem; font-weight: 800; border: 2px solid var(--dp-color-ink); margin-bottom: 3px; }
     .podium-2 { background: #e2e8f0; font-weight: 700; border: 2px solid var(--dp-color-ink); margin-bottom: 3px; }
     .podium-3 { background: #fdba74; font-weight: 700; border: 2px solid var(--dp-color-ink); margin-bottom: 3px; }
 
     .house-bar-container { width: 100%; border: 2px solid var(--dp-color-ink); height: 20px; margin-top: 4px; background: var(--dp-color-ground); }
     .house-bar { height: 100%; transition: width 0.5s ease; }
-    
-    .bg-Red { background-color: #ef4444; }
-    .bg-Purple { background-color: #a855f7; }
-    .bg-Yellow { background-color: #facc15; }
-    .bg-Green { background-color: #10b981; }
+    .bg-Red { background-color: #ef4444; } .bg-Purple { background-color: #a855f7; } .bg-Yellow { background-color: #facc15; } .bg-Green { background-color: #10b981; }
 
-    .scanner-wrapper { 
-      position: relative; 
-      width: 100%; 
-      max-width: 400px;
-      margin: 0 auto;
-      border: 3px solid var(--dp-color-ink);
-      background: var(--dp-color-ink);
-      overflow: hidden;
-      min-height: 200px;
-    }
+    /* Camera specific overrides */
+    .scanner-wrapper { position: relative; width: 100%; max-width: 400px; margin: 0 auto; border: 3px solid var(--dp-color-ink); background: var(--dp-color-ink); overflow: hidden; min-height: 200px; }
+    #reader { width: 100% !important; border: none !important; background: var(--dp-color-ink) !important; }
+    #reader__scan_region { background: var(--dp-color-ink) !important; }
+    #reader video { width: 100% !important; height: 220px !important; object-fit: cover !important; display: block !important; }
+    #reader__dashboard, #reader__dashboard_section_csr, #reader__dashboard_section_swaplink, #reader__status_span, #reader img { display: none !important; }
 
-    #reader { 
-      width: 100% !important; 
-      border: none !important;
-      background: var(--dp-color-ink) !important;
-    }
-
-    #reader__scan_region {
-      background: var(--dp-color-ink) !important;
-    }
-
-    #reader video {
-      width: 100% !important;
-      height: 220px !important;
-      object-fit: cover !important;
-      display: block !important;
-    }
-
-    #reader__dashboard,
-    #reader__dashboard_section_csr,
-    #reader__dashboard_section_swaplink,
-    #reader__status_span,
-    #reader img {
-      display: none !important;
-    }
-
-    .action-btn-mobile {
-      background: var(--dp-color-ground);
-      color: var(--dp-color-ink);
-      border: 3px solid var(--dp-color-ink);
-      padding: 12px;
-      width: 100%;
-      font-weight: 800;
-      font-size: 1rem;
-      text-transform: uppercase;
-      cursor: pointer;
-      box-shadow: 4px 4px 0px var(--dp-color-ink);
-      transition: all 0.1s;
-      margin: 8px 0;
-    }
+    .action-btn-mobile { background: var(--dp-color-ground); color: var(--dp-color-ink); border: 3px solid var(--dp-color-ink); padding: 12px; width: 100%; font-weight: 800; font-size: 1rem; text-transform: uppercase; cursor: pointer; box-shadow: 4px 4px 0px var(--dp-color-ink); transition: all 0.1s; margin: 8px 0; }
     .action-btn-mobile:active { box-shadow: 0px 0px 0px var(--dp-color-ink); transform: translate(4px, 4px); }
 
-    .input-rect {
-      background: var(--dp-color-field);
-      color: var(--dp-color-on-field);
-      border: 3px solid var(--dp-color-ink);
-      padding: 10px 12px;
-      font-size: 1rem;
-      font-weight: 700;
-      width: 100%;
-      outline: none;
-    }
+    .input-rect { background: var(--dp-color-field); color: #fff; border: 3px solid var(--dp-color-ink); padding: 10px 12px; font-size: 1rem; font-weight: 700; width: 100%; outline: none; }
     .input-rect::placeholder { color: rgba(255,255,255,0.7); }
 
-    .controls-row { 
-      display: flex; 
-      gap: 8px; 
-      margin-bottom: 12px; 
-      flex-wrap: wrap; 
-      align-items: center;
-    }
+    .controls-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    select { padding: 6px 10px; border: 2.5px solid var(--dp-color-ink); font-weight: 700; font-size: 0.85rem; background: #ffffff; min-width: 140px; }
+    .date-field-group { display: flex; align-items: center; border: 2.5px solid var(--dp-color-ink); background: #ffffff; padding: 2px 6px; gap: 6px; flex: 1; min-width: 155px; }
+    .date-field-group label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--dp-color-ink); }
+    .date-field-group input[type="date"] { border: none; background: transparent; font-weight: 600; font-size: 0.85rem; outline: none; width: 100%; cursor: pointer; }
+    .btn-square { background: var(--dp-color-field); color: white; border: 2.5px solid var(--dp-color-ink); padding: 6px 12px; cursor: pointer; font-weight: 700; font-size: 0.85rem; }
+
+    .lookup-container { background: var(--dp-color-ground); padding: 12px; border: 3px solid var(--dp-color-ink); margin-top: 8px; }
+
+    /* Unified Bauhaus Modal */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; }
+    .modal-card { background: var(--dp-color-ground); border: 4px solid var(--dp-color-ink); box-shadow: 8px 8px 0px var(--dp-color-ink); padding: 20px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 12px; }
     
-    select {
-      padding: 6px 10px; 
-      border: 2.5px solid var(--dp-color-ink); 
-      font-family: inherit; 
-      font-weight: 700; 
-      font-size: 0.85rem; 
-      background: #ffffff;
-      outline: none;
-      min-width: 140px;
-    }
+    .modal-title { background: var(--dp-color-field-support); border: 3px solid var(--dp-color-ink); padding: 4px 8px; font-weight: 800; font-size: 1.2rem; text-transform: uppercase; color: var(--dp-color-ink); }
+    .modal-title.error { background: #ef4444; color: white; }
+    .modal-title.success { background: #10b981; color: white; }
 
-    .date-field-group {
-      display: flex;
-      align-items: center;
-      border: 2.5px solid var(--dp-color-ink);
-      background: #ffffff;
-      padding: 2px 6px;
-      gap: 6px;
-      flex: 1;
-      min-width: 155px;
-    }
-
-    .date-field-group label {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: var(--dp-color-ink);
-    }
-
-    .date-field-group input[type="date"] {
-      border: none;
-      background: transparent;
-      font-family: inherit;
-      font-weight: 600;
-      font-size: 0.85rem;
-      outline: none;
-      width: 100%;
-      cursor: pointer;
-    }
-
-    .btn-square {
-      background: var(--dp-color-field); 
-      color: white; 
-      border: 2.5px solid var(--dp-color-ink); 
-      padding: 6px 12px; 
-      cursor: pointer; 
-      font-weight: 700; 
-      font-size: 0.85rem;
-    }
-
-    .lookup-container {
-      background: var(--dp-color-ground); 
-      padding: 12px; 
-      border: 3px solid var(--dp-color-ink); 
-      margin-top: 8px;
-    }
-
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      padding: 16px;
-    }
-    .modal-card {
-      background: var(--dp-color-ground);
-      border: 4px solid var(--dp-color-ink);
-      box-shadow: 8px 8px 0px var(--dp-color-ink);
-      padding: 20px;
-      width: 100%;
-      max-width: 380px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .modal-title {
-      background: var(--dp-color-field-support);
-      border: 3px solid var(--dp-color-ink);
-      padding: 4px 8px;
-      font-weight: 800;
-      font-size: 1.2rem;
-      text-transform: uppercase;
-    }
-    .modal-title.cooldown-title {
-      background: #ef4444;
-      color: white;
-    }
-    .modal-info-row {
-      display: flex;
-      justify-content: space-between;
-      font-weight: 700;
-      border-bottom: 2px dashed var(--dp-color-ink);
-      padding: 4px 0;
-    }
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 8px;
-    }
-    .btn-confirm {
-      flex: 1;
-      background: #10b981;
-      color: white;
-      border: 3px solid var(--dp-color-ink);
-      padding: 10px;
-      font-weight: 800;
-      font-size: 1rem;
-      cursor: pointer;
-      box-shadow: 4px 4px 0px var(--dp-color-ink);
-    }
+    .modal-info-row { display: flex; justify-content: space-between; font-weight: 700; border-bottom: 2px dashed var(--dp-color-ink); padding: 4px 0; }
+    .modal-actions { display: flex; gap: 10px; margin-top: 8px; }
+    
+    .btn-confirm { flex: 1; background: #10b981; color: white; border: 3px solid var(--dp-color-ink); padding: 10px; font-weight: 800; cursor: pointer; box-shadow: 4px 4px 0px var(--dp-color-ink); }
     .btn-confirm:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--dp-color-ink); }
-    .btn-cancel {
-      flex: 1;
-      background: var(--dp-color-accent);
-      color: white;
-      border: 3px solid var(--dp-color-ink);
-      padding: 10px;
-      font-weight: 800;
-      font-size: 1rem;
-      cursor: pointer;
-      box-shadow: 4px 4px 0px var(--dp-color-ink);
-    }
+    .btn-cancel { flex: 1; background: var(--dp-color-accent); color: white; border: 3px solid var(--dp-color-ink); padding: 10px; font-weight: 800; cursor: pointer; box-shadow: 4px 4px 0px var(--dp-color-ink); }
     .btn-cancel:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--dp-color-ink); }
   </style>
 </head>
@@ -363,11 +104,7 @@
     <div class="header-bar">
       <h1>English Speaking Day</h1>
       <div style="display:flex; align-items:center; gap:8px;">
-        <div id="g_id_onload"
-             data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com"
-             data-callback="handleCredentialResponse"
-             data-auto_prompt="false">
-        </div>
+        <div id="g_id_onload" data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
         <div class="g_id_signin" data-type="standard" data-size="small" data-theme="outline"></div>
         <button id="logoutBtn" class="btn-square" style="display:none; padding:4px 8px; font-size:0.75rem; background:#ef4444;" onclick="logout()">Logout</button>
         <div class="user-badge" id="userBadge">Public Mode</div>
@@ -376,7 +113,7 @@
 
     <div class="grand-banner">
       <div>
-        <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Total Interactions</div>
+        <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase;">Total Interactions</div>
         <div style="font-size:0.7rem; opacity:0.8;">Campus Conversations</div>
       </div>
       <div id="grandTotal" class="grand-number">0</div>
@@ -388,12 +125,10 @@
         <option value="today">Today's Live</option>
         <option value="thisWeek">This Week</option>
       </select>
-
       <div class="date-field-group">
         <label for="startDate">From:</label>
         <input type="date" id="startDate" onchange="refreshLeaderboard()">
       </div>
-
       <div class="date-field-group">
         <label for="endDate">To:</label>
         <input type="date" id="endDate" onchange="refreshLeaderboard()">
@@ -408,10 +143,8 @@
       <div class="grid-cell">
         <h2>House Ranking</h2>
         <div id="houseList">Loading...</div>
-        
         <h2 style="margin-top:1.2rem;">Top English Groups</h2>
         <div id="groupList">Loading...</div>
-
         <h2 style="margin-top:1.2rem;">Outstanding Classes</h2>
         <div id="classList">Loading...</div>
       </div>
@@ -424,8 +157,7 @@
     <div class="scanner-wrapper">
       <div id="reader"></div>
     </div>
-    
-    <button class="action-btn-mobile" id="scanBtn" onclick="toggleScanner()">Start Scanner</button>
+    <button class="action-btn-mobile" id="scanBtn" onclick="toggleScanner()">START SCANNER</button>
     
     <div>
       <input type="text" id="manualId" class="input-rect" placeholder="Manual ID Entry" onkeypress="if(event.key==='Enter') submitManual()">
@@ -446,312 +178,226 @@
   </div>
 </div>
 
-<!-- STUDENT CONFIRMATION / COOLDOWN MODAL -->
-<div id="confirmModal" class="modal-overlay">
+<!-- UNIFIED MODAL -->
+<div id="unifiedModal" class="modal-overlay">
   <div class="modal-card">
-    <div id="modalTitle" class="modal-title">Confirm Award Point</div>
-    
-    <div id="studentInfoSection">
-      <div class="modal-info-row"><span>Student Name:</span><span id="modalName">-</span></div>
-      <div class="modal-info-row"><span>Student ID:</span><span id="modalId">-</span></div>
-      <div class="modal-info-row"><span>Class & No:</span><span id="modalClass">-</span></div>
-      <div class="modal-info-row"><span>Eng Group:</span><span id="modalGroup">-</span></div>
-      <div class="modal-info-row"><span>House:</span><span id="modalHouse">-</span></div>
-      <div class="modal-info-row"><span>Current Score:</span><span id="modalScore">0 pt</span></div>
-    </div>
-
-    <div id="cooldownWarningSection" style="display:none; font-weight:700; padding:10px 0; font-size:0.95rem; text-align:center;">
-      ⚠️ <span id="cooldownMsg">Student scored recently. Please wait before scanning again.</span>
-    </div>
-    
-    <div class="modal-actions" id="modalActions">
-      <button class="btn-confirm" id="btnConfirmAction" onclick="confirmPointAward()">CONFIRM (+1)</button>
-      <button class="btn-cancel" id="btnCancelAction" onclick="closeConfirmModal()">CANCEL</button>
-    </div>
+    <div id="modalTitle" class="modal-title"></div>
+    <div id="modalBody"></div>
+    <div id="modalActions" class="modal-actions"></div>
   </div>
 </div>
 
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw8aryp3-LxbJmqSjqRod2yPHyZBCkL1UKfsq_I2ctJcnOXlOYjpYK8IzJAcpd645mi/exec";
-
+  const houseNames = { 'Red': 'Red 仁', 'Purple': 'Purple 愛', 'Yellow': 'Yellow 勤', 'Green': 'Green 誠' };
   let html5QrcodeScanner = null;
   let idToken = localStorage.getItem('google_id_token') || '';
   let pendingStudentData = null;
-  let isScanningPaused = false;
 
-  const houseNames = { 'Red': 'Red 仁', 'Purple': 'Purple 愛', 'Yellow': 'Yellow 勤', 'Green': 'Green 誠' };
-  const beepSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
-  const beepError = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+  // Preload audio files for instant sync
+  const sndSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
+  const sndError = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+  sndSuccess.preload = 'auto'; sndError.preload = 'auto';
 
+  function playSound(audioEl) {
+    audioEl.currentTime = 0;
+    audioEl.play().catch(e => console.warn("Audio blocked by browser:", e));
+  }
+
+  // Unified Modal Renderer
+  function renderModal(title, titleStyle, bodyHtml, actionsHtml) {
+    document.getElementById('modalTitle').className = `modal-title ${titleStyle}`;
+    document.getElementById('modalTitle').innerText = title;
+    document.getElementById('modalBody').innerHTML = bodyHtml;
+    document.getElementById('modalActions').innerHTML = actionsHtml;
+    document.getElementById('unifiedModal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('unifiedModal').style.display = 'none';
+    pendingStudentData = null;
+  }
+
+  // Authenticate & Initialization
   function handleCredentialResponse(response) {
     idToken = response.credential;
     localStorage.setItem('google_id_token', idToken);
-    
-    const signinBtn = document.querySelector('.g_id_signin');
-    if (signinBtn) signinBtn.style.display = 'none';
+    document.querySelector('.g_id_signin').style.display = 'none';
     document.getElementById('logoutBtn').style.display = 'inline-block';
-
-    loadInitialData(idToken);
+    loadInitialData();
   }
 
   function logout() {
     idToken = '';
-    localStorage.removeItem('google_id_token');
-    localStorage.removeItem('cached_students_db');
-    localStorage.removeItem('recent_scans');
-    const signinBtn = document.querySelector('.g_id_signin');
-    if (signinBtn) signinBtn.style.display = 'block';
+    localStorage.clear();
+    document.querySelector('.g_id_signin').style.display = 'block';
     document.getElementById('logoutBtn').style.display = 'none';
     document.getElementById('teacherPanel').style.display = 'none';
     document.getElementById('userBadge').innerText = 'Public Mode';
-    loadInitialData('');
+    loadInitialData();
   }
 
-  async function apiGet(action, params = {}) {
-    params.action = action;
-    params.idToken = params.idToken || idToken;
-    const queryString = new URLSearchParams(params).toString();
-    const res = await fetch(`${GAS_API_URL}?${queryString}`, { redirect: 'follow' });
-    const text = await res.text();
+  async function loadInitialData() {
+    // 1. Instantly load from cache
+    const cachedLb = localStorage.getItem('cached_leaderboard');
+    if (cachedLb) renderLeaderboards(JSON.parse(cachedLb));
+    
+    // 2. Fetch fresh overarching data payload
     try {
-      return JSON.parse(text);
-    } catch(e) {
-      return { success: false, message: "Server communication error." };
-    }
-  }
+      const qs = new URLSearchParams({ action: 'init', idToken: idToken }).toString();
+      const res = await (await fetch(`${GAS_API_URL}?${qs}`)).json();
 
-  async function apiPost(action, body = {}) {
-    body.action = action;
-    body.idToken = idToken;
-    const res = await fetch(GAS_API_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(body)
-    });
-    const text = await res.text();
-    try {
-      return JSON.parse(text);
-    } catch(e) {
-      return { success: false, message: "Server communication error." };
+      if (res.isTeacher) {
+        document.getElementById('userBadge').innerText = `Teacher: ${res.userEmail}`;
+        document.getElementById('teacherPanel').style.display = 'flex';
+        localStorage.setItem('cached_students_db', JSON.stringify(res.studentsMap || {}));
+        
+        window.dropdownOpts = { classes: res.classes || [], groups: res.groups || [] };
+        updateLookupDropdown();
+      } else {
+        document.getElementById('userBadge').innerText = res.userEmail ? `User: ${res.userEmail} (No Access)` : 'Public Mode';
+        document.getElementById('teacherPanel').style.display = 'none';
+      }
+
+      if (res.leaderboard) {
+        localStorage.setItem('cached_leaderboard', JSON.stringify(res.leaderboard));
+        renderLeaderboards(res.leaderboard);
+      }
+    } catch (e) {
+      console.error("Init Error:", e);
     }
   }
 
   window.onload = () => {
-    const cachedLeaderboard = localStorage.getItem('cached_leaderboard');
-    if (cachedLeaderboard) {
-      renderLeaderboards(JSON.parse(cachedLeaderboard));
-    }
-
-    loadInitialData(idToken);
-
-    setInterval(() => {
-      refreshLeaderboard(true);
-    }, 15000);
+    loadInitialData();
+    setInterval(() => refreshLeaderboard(true), 15000);
+    document.getElementById('lookupType').addEventListener('change', updateLookupDropdown);
   };
 
-  async function loadInitialData(explicitToken) {
-    try {
-      const targetToken = explicitToken !== undefined ? explicitToken : idToken;
-      const data = await apiGet('getInitialData', { idToken: targetToken });
-      const b = document.getElementById('userBadge');
-      const signinBtn = document.querySelector('.g_id_signin');
-      const logoutBtn = document.getElementById('logoutBtn');
-      
-      if (data.isTeacher) {
-        b.innerText = `Teacher: ${data.userEmail}`;
-        document.getElementById('teacherPanel').style.display = 'flex';
-        if (signinBtn) signinBtn.style.display = 'none';
-        if (logoutBtn) logoutBtn.style.display = 'inline-block';
-        loadOptionsAndStudents();
-      } else {
-        b.innerText = data.userEmail ? `User: ${data.userEmail} (No Access)` : 'Public Mode';
-        if (signinBtn) signinBtn.style.display = 'block';
-        if (logoutBtn) logoutBtn.style.display = 'none';
-        document.getElementById('teacherPanel').style.display = 'none';
-      }
-
-      if (data.leaderboard) {
-        localStorage.setItem('cached_leaderboard', JSON.stringify(data.leaderboard));
-        renderLeaderboards(data.leaderboard);
-      }
-    } catch (err) {
-      console.error("Init error:", err);
-    }
-  }
-
-  async function loadOptionsAndStudents() {
-    try {
-      const res = await apiGet('getAllStudentsAndOptions');
-      if (res.success) {
-        window.dropdownOpts = { classes: res.classes, groups: res.groups };
-        localStorage.setItem('cached_options', JSON.stringify(window.dropdownOpts));
-        localStorage.setItem('cached_students_db', JSON.stringify(res.studentsMap));
-        updateLookupDropdown();
-      }
-    } catch(e) {
-      const cachedOpts = localStorage.getItem('cached_options');
-      if (cachedOpts) {
-        window.dropdownOpts = JSON.parse(cachedOpts);
-        updateLookupDropdown();
-      }
-    }
-    document.getElementById('lookupType').removeEventListener('change', updateLookupDropdown);
-    document.getElementById('lookupType').addEventListener('change', updateLookupDropdown);
-  }
-
-  function toggleScanner() {
+  // Camera Functions (Auto-turn-off fixed)
+  async function toggleScanner() {
     if (html5QrcodeScanner) {
-      html5QrcodeScanner.clear().then(() => {
-        html5QrcodeScanner = null;
-        document.getElementById('scanBtn').innerText = "START SCANNER";
-      }).catch(() => {
-        html5QrcodeScanner = null;
-        document.getElementById('scanBtn').innerText = "START SCANNER";
-      });
+      await stopScanner();
     } else {
       html5QrcodeScanner = new Html5Qrcode("reader");
       html5QrcodeScanner.start(
         { facingMode: "environment" }, 
         { fps: 10, qrbox: { width: 220, height: 90 }, aspectRatio: 1.777778 },
-        (decodedText) => { onCodeScanned(decodedText); },
-        (error) => {}
+        (decodedText) => onCodeScanned(decodedText),
+        (err) => {}
       ).then(() => {
         document.getElementById('scanBtn').innerText = "STOP SCANNER";
       }).catch(err => {
-        alert("Camera error: Check permissions.");
+        playSound(sndError);
+        renderModal("Camera Error", "error", `<p>Check permissions.</p>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
       });
     }
   }
 
-  // INSTANT LOCAL LOOKUP & COOLDOWN CHECK
-  function onCodeScanned(scannedId) {
-    if (isScanningPaused || pendingStudentData) return;
-    isScanningPaused = true;
-
+  async function stopScanner() {
     if (html5QrcodeScanner) {
-      try { html5QrcodeScanner.pause(true); } catch(e) {}
+      try { await html5QrcodeScanner.clear(); } catch(e) {}
+      html5QrcodeScanner = null;
+      document.getElementById('scanBtn').innerText = "START SCANNER";
     }
+  }
+
+  function submitManual() {
+    const val = document.getElementById('manualId').value.trim();
+    if (val) { onCodeScanned(val); document.getElementById('manualId').value = ""; document.getElementById('manualId').blur(); }
+  }
+
+  // Scan & Validation Workflow
+  async function onCodeScanned(scannedId) {
+    if (pendingStudentData) return;
+    
+    // Automatically Turn Off Camera after detection
+    await stopScanner();
 
     const cleanId = String(scannedId).trim();
     const studentsMap = JSON.parse(localStorage.getItem('cached_students_db') || '{}');
     const student = studentsMap[cleanId] || studentsMap[cleanId.replace(/^0+/, '')];
 
     if (!student) {
-      beepError.play();
-      alert(`Student ID not found: "${cleanId}"`);
-      resumeScanner();
+      playSound(sndError);
+      renderModal("Not Found", "error", `<div style="font-weight:700; text-align:center;">Student ID not found:<br>"${cleanId}"</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
       return;
     }
 
-    // Check Cooldown Locally
+    // Local Cooldown Check
     let recentScans = JSON.parse(localStorage.getItem('recent_scans') || '{}');
     let now = Date.now();
     let lastScanTime = recentScans[student.id] || 0;
 
     if (now - lastScanTime < 60000) {
       let remainingSec = Math.ceil((lastScanTime + 60000 - now) / 1000);
-      beepError.play();
-      showCooldownModal(student, remainingSec);
+      playSound(sndError);
+      renderModal("Cooldown Active", "error", 
+        `<div style="font-weight:700; text-align:center;">⚠️ ${student.name} (${student.className}) scored recently.<br>Wait ${remainingSec}s.</div>`,
+        `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`
+      );
     } else {
       pendingStudentData = student;
-      showConfirmModal(student);
+      playSound(sndSuccess);
+      renderModal("Confirm Award Point", "",
+        `<div class="modal-info-row"><span>Name:</span><span>${student.name}</span></div>
+         <div class="modal-info-row"><span>Class:</span><span>${student.className} (${student.classNo})</span></div>
+         <div class="modal-info-row"><span>Group:</span><span>${student.englishGroup}</span></div>
+         <div class="modal-info-row"><span>House:</span><span>${houseNames[student.house] || student.house}</span></div>
+         <div class="modal-info-row"><span>Current Score:</span><span>${student.totalScore || 0} pt</span></div>`,
+        `<button class="btn-confirm" onclick="confirmPointAward()">CONFIRM (+1)</button>
+         <button class="btn-cancel" onclick="closeModal()">CANCEL</button>`
+      );
     }
-  }
-
-  function submitManual() {
-    const val = document.getElementById('manualId').value.trim();
-    if (val) {
-      onCodeScanned(val);
-      document.getElementById('manualId').value = "";
-      document.getElementById('manualId').blur();
-    }
-  }
-
-  function showConfirmModal(student) {
-    document.getElementById('modalTitle').innerText = "Confirm Award Point";
-    document.getElementById('modalTitle').className = "modal-title";
-    document.getElementById('studentInfoSection').style.display = 'block';
-    document.getElementById('cooldownWarningSection').style.display = 'none';
-
-    document.getElementById('modalName').innerText = student.name || '-';
-    document.getElementById('modalId').innerText = student.id || '-';
-    document.getElementById('modalClass').innerText = `${student.className || ''} (${student.classNo || ''})`;
-    document.getElementById('modalGroup').innerText = student.englishGroup || '-';
-    document.getElementById('modalHouse').innerText = houseNames[student.house] || student.house || '-';
-    document.getElementById('modalScore').innerText = `${student.totalScore || 0} pt`;
-    
-    // Show confirm and cancel buttons
-    document.getElementById('btnConfirmAction').style.display = 'block';
-    document.getElementById('btnCancelAction').innerText = "CANCEL";
-    document.getElementById('btnCancelAction').style.display = 'block';
-
-    document.getElementById('confirmModal').style.display = 'flex';
-  }
-
-  function showCooldownModal(student, remainingSec) {
-    document.getElementById('modalTitle').innerText = "Cooldown Active";
-    document.getElementById('modalTitle').className = "modal-title cooldown-title";
-    document.getElementById('studentInfoSection').style.display = 'none';
-    
-    document.getElementById('cooldownWarningSection').style.display = 'block';
-    document.getElementById('cooldownMsg').innerText = `${student.name} (${student.className}) scored recently. Please wait ${remainingSec}s.`;
-
-    // Hide confirm button, show close button
-    document.getElementById('btnConfirmAction').style.display = 'none';
-    document.getElementById('btnCancelAction').innerText = "CLOSE";
-    document.getElementById('btnCancelAction').style.display = 'block';
-
-    document.getElementById('confirmModal').style.display = 'flex';
-  }
-
-  function closeConfirmModal() {
-    document.getElementById('confirmModal').style.display = 'none';
-    pendingStudentData = null;
-    resumeScanner();
-  }
-
-  function resumeScanner() {
-    if (html5QrcodeScanner) {
-      try {
-        html5QrcodeScanner.resume();
-      } catch(e) {}
-    }
-    isScanningPaused = false;
   }
 
   async function confirmPointAward() {
     if (!pendingStudentData) return;
     const student = pendingStudentData;
-    closeConfirmModal();
+    
+    // Switch to loading state
+    document.getElementById('modalActions').innerHTML = `<div style="text-align:center; width:100%; font-weight:bold;">Processing...</div>`;
 
     try {
-      const res = await apiPost('recordPoint', { studentId: student.id });
+      const res = await (await fetch(GAS_API_URL, {
+        method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'recordPoint', idToken: idToken, studentId: student.id })
+      })).json();
+
       if (res.success) {
-        beepSuccess.play();
+        playSound(sndSuccess);
         
-        // Record recent scan locally to enforce instant cooldown on next scan
+        // Update Local State Instantly
         let recentScans = JSON.parse(localStorage.getItem('recent_scans') || '{}');
         recentScans[student.id] = Date.now();
         localStorage.setItem('recent_scans', JSON.stringify(recentScans));
 
-        // Update local cache score instantly
         const studentsMap = JSON.parse(localStorage.getItem('cached_students_db') || '{}');
         if (studentsMap[student.id]) {
           studentsMap[student.id].totalScore = (studentsMap[student.id].totalScore || 0) + 1;
           localStorage.setItem('cached_students_db', JSON.stringify(studentsMap));
         }
-        refreshLeaderboard(false);
+
+        closeModal();
+        refreshLeaderboard(true);
+      } else if (res.cooldown) {
+        // Handle Server Cooldown Clash smoothly in UI
+        playSound(sndError);
+        renderModal("Cooldown Active", "error", 
+          `<div style="font-weight:700; text-align:center;">⚠️ ${res.message}</div>`,
+          `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`
+        );
       } else {
-        beepError.play();
-        alert(res.message);
+        playSound(sndError);
+        renderModal("Error", "error", `<div style="font-weight:700; text-align:center;">${res.message}</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
       }
     } catch (err) {
-      beepError.play();
-      alert("Failed to submit score log to server.");
+      playSound(sndError);
+      renderModal("Network Error", "error", `<div style="font-weight:700; text-align:center;">Failed to connect to server.</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
     }
   }
 
+  // --- Leaderboard & Lookup Utilities ---
   function applyPreset() {
     const val = document.getElementById('presetRange').value;
     const now = new Date();
@@ -761,15 +407,12 @@
       document.getElementById('endDate').value = today;
     } else if (val === 'thisWeek') {
       const day = now.getDay() || 7;
-      const monday = new Date(now);
-      monday.setDate(now.getDate() - day + 1);
-      const sunday = new Date(now);
-      sunday.setDate(now.getDate() - day + 7);
+      const monday = new Date(now); monday.setDate(now.getDate() - day + 1);
+      const sunday = new Date(now); sunday.setDate(now.getDate() - day + 7);
       document.getElementById('startDate').value = monday.toISOString().split('T')[0];
       document.getElementById('endDate').value = sunday.toISOString().split('T')[0];
     } else {
-      document.getElementById('startDate').value = "";
-      document.getElementById('endDate').value = "";
+      document.getElementById('startDate').value = ""; document.getElementById('endDate').value = "";
     }
     refreshLeaderboard(false);
   }
@@ -778,58 +421,40 @@
     const start = document.getElementById('startDate').value;
     const end = document.getElementById('endDate').value;
     try {
-      const data = await apiGet('getLeaderboard', { startDate: start, endDate: end });
+      const qs = new URLSearchParams({ action: 'leaderboard', startDate: start, endDate: end }).toString();
+      const data = await (await fetch(`${GAS_API_URL}?${qs}`)).json();
       if (data && data.students) {
         localStorage.setItem('cached_leaderboard', JSON.stringify(data));
         renderLeaderboards(data);
       }
-    } catch (e) {
-      if (!isSilent) console.error("Leaderboard refresh error:", e);
-    }
+    } catch (e) { if (!isSilent) console.error(e); }
   }
 
   function renderLeaderboards(data) {
     if (!data) return;
     document.getElementById('grandTotal').innerText = data.totalInteractions || 0;
-
     const icons = ['🥇', '🥈', '🥉'];
 
     document.getElementById('studentList').innerHTML = (data.students || []).map(s => {
-      const r = s.rank;
-      const iconStr = r <= 3 ? icons[r - 1] : `#${r}`;
+      const r = s.rank; const iconStr = r <= 3 ? icons[r - 1] : `#${r}`;
       const podiumClass = r === 1 ? 'podium-1' : (r === 2 ? 'podium-2' : (r === 3 ? 'podium-3' : ''));
-      return `
-        <div class="stat-row ${podiumClass}">
-          <span>${iconStr} ${s.name} (${s.className})</span>
-          <span>${s.score} pt</span>
-        </div>`;
+      return `<div class="stat-row ${podiumClass}"><span>${iconStr} ${s.name} (${s.className})</span><span>${s.score} pt</span></div>`;
     }).join('') || '<div style="padding:8px 0; font-size:0.85rem;">No speaking logs found.</div>';
 
     const maxHouse = Math.max(...(data.houses || []).map(h => h.score), 1);
     document.getElementById('houseList').innerHTML = (data.houses || []).map(h => `
       <div style="margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.85rem;">
-          <span>#${h.rank} ${houseNames[h.name] || h.name}</span>
-          <span>${h.score} pt</span>
-        </div>
-        <div class="house-bar-container">
-          <div class="house-bar bg-${h.name}" style="width:${(h.score/maxHouse)*100}%;"></div>
-        </div>
+        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.85rem;"><span>#${h.rank} ${houseNames[h.name] || h.name}</span><span>${h.score} pt</span></div>
+        <div class="house-bar-container"><div class="house-bar bg-${h.name}" style="width:${(h.score/maxHouse)*100}%;"></div></div>
       </div>`).join('');
 
-    document.getElementById('groupList').innerHTML = (data.groups || []).map(g => 
-      `<div class="stat-row"><span>#${g.rank} ${g.name}</span><span>${g.score}</span></div>`
-    ).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
-
-    document.getElementById('classList').innerHTML = (data.classes || []).map(c => 
-      `<div class="stat-row"><span>#${c.rank} ${c.name}</span><span>${c.score}</span></div>`
-    ).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
+    document.getElementById('groupList').innerHTML = (data.groups || []).map(g => `<div class="stat-row"><span>#${g.rank} ${g.name}</span><span>${g.score}</span></div>`).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
+    document.getElementById('classList').innerHTML = (data.classes || []).map(c => `<div class="stat-row"><span>#${c.rank} ${c.name}</span><span>${c.score}</span></div>`).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
   }
 
   function updateLookupDropdown() {
     if (!window.dropdownOpts) return;
-    const type = document.getElementById('lookupType').value;
-    const arr = type === 'class' ? window.dropdownOpts.classes : window.dropdownOpts.groups;
+    const arr = document.getElementById('lookupType').value === 'class' ? window.dropdownOpts.classes : window.dropdownOpts.groups;
     document.getElementById('lookupValue').innerHTML = (arr || []).map(a => `<option value="${a}">${a}</option>`).join('');
   }
 
@@ -842,16 +467,16 @@
     document.getElementById('lookupResults').innerHTML = 'Loading...';
     document.getElementById('lookupResults').style.display = 'block';
 
-    const res = await apiGet('getStudentScores', { filterType: type, filterValue: val, startDate: start, endDate: end });
-    if (!res || !res.students || res.students.length === 0) {
-      document.getElementById('lookupResults').innerHTML = 'No students found.';
-      return;
-    }
-    document.getElementById('lookupResults').innerHTML = res.students.map(r => `
-      <div style="display:flex; justify-content:space-between; border-bottom:1px solid #000; padding:3px 0; font-size:0.85rem;">
-        <span>${r.classNo ? r.classNo + '. ' : ''}${r.name}</span><strong>${r.score} pt</strong>
-      </div>
-    `).join('');
+    try {
+      const qs = new URLSearchParams({ action: 'lookup', filterType: type, filterValue: val, startDate: start, endDate: end }).toString();
+      const res = await (await fetch(`${GAS_API_URL}?${qs}`)).json();
+      
+      if (!res.students || res.students.length === 0) {
+        document.getElementById('lookupResults').innerHTML = 'No students found.';
+      } else {
+        document.getElementById('lookupResults').innerHTML = res.students.map(r => `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #000; padding:3px 0; font-size:0.85rem;"><span>${r.classNo ? r.classNo + '. ' : ''}${r.name}</span><strong>${r.score} pt</strong></div>`).join('');
+      }
+    } catch(e) { document.getElementById('lookupResults').innerHTML = 'Search failed.'; }
   }
 </script>
 </body>
