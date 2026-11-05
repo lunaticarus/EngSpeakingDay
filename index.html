@@ -212,13 +212,39 @@
   let idToken = localStorage.getItem('google_id_token') || '';
   let pendingStudentData = null;
 
+  // Preload audio objects
   const sndSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
   const sndError = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-  sndSuccess.preload = 'auto'; sndError.preload = 'auto';
+  sndSuccess.preload = 'auto'; 
+  sndError.preload = 'auto';
+
+  let audioUnlocked = false;
+
+  // Unlock browser audio restriction on first tap/click anywhere
+  function unlockAudio() {
+    if (audioUnlocked) return;
+    [sndSuccess, sndError].forEach(audio => {
+      audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+      }).catch(() => {});
+    });
+    audioUnlocked = true;
+    document.removeEventListener('click', unlockAudio);
+    document.removeEventListener('touchstart', unlockAudio);
+  }
+
+  document.addEventListener('click', unlockAudio);
+  document.addEventListener('touchstart', unlockAudio);
 
   function playSound(audioEl) {
-    audioEl.currentTime = 0;
-    audioEl.play().catch(e => console.warn("Audio play error:", e));
+    try {
+      audioEl.currentTime = 0;
+      const playPromise = audioEl.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(e => console.warn("Audio autoplay blocked by browser:", e));
+      }
+    } catch(e) {}
   }
 
   function renderModal(title, titleStyle, bodyHtml, actionsHtml) {
@@ -234,7 +260,7 @@
     pendingStudentData = null;
   }
 
-  // Update Header Elements State Instantly
+  // Update Auth Elements Instantly
   function updateAuthUI(isLoggedIn, userEmail = '') {
     const googleBtn = document.getElementById('googleSignInContainer');
     const logoutBtn = document.getElementById('logoutBtn');
