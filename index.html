@@ -317,7 +317,7 @@
   const beepSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
   const beepError = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
 
-  // Google 登入 Callback
+  // Google 登入成功 Callback
   function handleCredentialResponse(response) {
     idToken = response.credential;
     localStorage.setItem('google_id_token', idToken);
