@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>English Speaking Day</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
-  <!-- Google 官方 OAuth 2.0 SDK -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700;800&display=swap');
@@ -157,8 +156,6 @@
     .bg-Yellow { background-color: #facc15; }
     .bg-Green { background-color: #10b981; }
 
-    /* 防相機溢出與佈局遮擋樣式 */
-    /* Camera Container & Viewfinder Fixes */
     .scanner-wrapper { 
       position: relative; 
       width: 100%; 
@@ -167,55 +164,30 @@
       overflow: hidden;
       border: 3px solid var(--dp-color-ink);
       background: var(--dp-color-ink);
-      min-height: 200px;
     }
 
     #reader { 
       width: 100% !important; 
       border: none !important;
       background: var(--dp-color-ink);
-      position: relative;
+      overflow: hidden;
     }
 
-    /* Target only the actual video element injected by html5-qrcode */
-    #reader video {
+    #reader video, 
+    #reader canvas, 
+    #reader img {
       width: 100% !important;
-      height: 100% !important;
-      max-height: 250px !important;
+      max-width: 100% !important;
+      height: auto !important;
+      max-height: 220px !important;
       object-fit: cover !important;
       display: block !important;
     }
 
-    /* Clean up html5-qrcode extra internal containers & buttons */
-    #reader__scan_region {
-      background: transparent !important;
-    }
-
     #reader__dashboard_section_csr,
-    #reader__dashboard_section_swaplink,
-    #reader__status_span,
-    #reader img {
+    #reader__status_span {
       display: none !important;
     }
-
-    /* Position "READY" Bar cleanly over top of scanner */
-    .camera-ready-bar {
-      position: absolute; 
-      top: 0; 
-      left: 0; 
-      right: 0;
-      background: #10b981; 
-      color: white; 
-      text-align: center; 
-      font-weight: 800;
-      font-size: 0.85rem; 
-      padding: 6px; 
-      border-bottom: 3px solid var(--dp-color-ink); 
-      z-index: 20;
-      display: none; 
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse { 0% { opacity: 0.85; } 50% { opacity: 1; } 100% { opacity: 0.85; } }
 
     .action-btn-mobile {
       background: var(--dp-color-ground);
@@ -245,13 +217,6 @@
     }
     .input-rect::placeholder { color: rgba(255,255,255,0.7); }
 
-    .status-panel {
-      padding: 10px 14px; border: 3px solid var(--dp-color-ink); font-weight: 700; font-size: 0.95rem; display: none; margin-top: 10px;
-    }
-    .status-success { background: #10b981; color: #fff; }
-    .status-warn { background: #facc15; color: #000; }
-    .status-error { background: var(--dp-color-ink); color: #fff; }
-
     .controls-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
     select, input[type="date"] {
       padding: 6px 8px; border: 2.5px solid var(--dp-color-ink); font-family: inherit; font-weight: 600; font-size: 0.85rem; flex: 1; min-width: 110px;
@@ -266,6 +231,73 @@
       border: 3px solid var(--dp-color-ink); 
       margin-top: 8px;
     }
+
+    /* Bauhaus Confirmation Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+    }
+    .modal-card {
+      background: var(--dp-color-ground);
+      border: 4px solid var(--dp-color-ink);
+      box-shadow: 8px 8px 0px var(--dp-color-ink);
+      padding: 20px;
+      width: 100%;
+      max-width: 380px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .modal-title {
+      background: var(--dp-color-field-support);
+      border: 3px solid var(--dp-color-ink);
+      padding: 4px 8px;
+      font-weight: 800;
+      font-size: 1.2rem;
+      text-transform: uppercase;
+    }
+    .modal-info-row {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 700;
+      border-bottom: 2px dashed var(--dp-color-ink);
+      padding: 4px 0;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .btn-confirm {
+      flex: 1;
+      background: #10b981;
+      color: white;
+      border: 3px solid var(--dp-color-ink);
+      padding: 10px;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 4px 4px 0px var(--dp-color-ink);
+    }
+    .btn-confirm:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--dp-color-ink); }
+    .btn-cancel {
+      flex: 1;
+      background: var(--dp-color-accent);
+      color: white;
+      border: 3px solid var(--dp-color-ink);
+      padding: 10px;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 4px 4px 0px var(--dp-color-ink);
+    }
+    .btn-cancel:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0px var(--dp-color-ink); }
   </style>
 </head>
 <body>
@@ -302,9 +334,6 @@
       </select>
       <input type="date" id="startDate" onchange="refreshLeaderboard()">
       <input type="date" id="endDate" onchange="refreshLeaderboard()">
-      <div style="display:flex; align-items:center; gap:6px; font-size:0.85rem;">
-        <input type="checkbox" id="liveRefresh" checked> <b>Live</b>
-      </div>
     </div>
 
     <div class="grid-rules">
@@ -329,7 +358,6 @@
     <h2 style="background:var(--dp-color-ground); color:var(--dp-color-ink);">Teacher Terminal</h2>
     
     <div class="scanner-wrapper">
-      <div id="readyBar" class="camera-ready-bar">READY FOR NEXT CARD...</div>
       <div id="reader"></div>
     </div>
     
@@ -338,8 +366,6 @@
     <div>
       <input type="text" id="manualId" class="input-rect" placeholder="Manual ID Entry" onkeypress="if(event.key==='Enter') submitManual()">
     </div>
-
-    <div id="statusBox" class="status-panel"></div>
 
     <div class="lookup-container">
       <h3>Class & Group Lookup</h3>
@@ -356,11 +382,31 @@
   </div>
 </div>
 
+<!-- STUDENT SCORE CONFIRMATION MODAL -->
+<div id="confirmModal" class="modal-overlay">
+  <div class="modal-card">
+    <div class="modal-title">Confirm Award Point</div>
+    <div class="modal-info-row"><span>Student Name:</span><span id="modalName">-</span></div>
+    <div class="modal-info-row"><span>Student ID:</span><span id="modalId">-</span></div>
+    <div class="modal-info-row"><span>Class & No:</span><span id="modalClass">-</span></div>
+    <div class="modal-info-row"><span>Eng Group:</span><span id="modalGroup">-</span></div>
+    <div class="modal-info-row"><span>House:</span><span id="modalHouse">-</span></div>
+    <div class="modal-info-row"><span>Current Score:</span><span id="modalScore">0 pt</span></div>
+    
+    <div class="modal-actions">
+      <button class="btn-confirm" onclick="confirmPointAward()">CONFIRM (+1)</button>
+      <button class="btn-cancel" onclick="closeConfirmModal()">CANCEL</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw8aryp3-LxbJmqSjqRod2yPHyZBCkL1UKfsq_I2ctJcnOXlOYjpYK8IzJAcpd645mi/exec";
 
   let html5QrcodeScanner = null;
   let idToken = localStorage.getItem('google_id_token') || '';
+  let pendingStudentData = null;
+  let isScanningPaused = false;
 
   const houseNames = { 'Red': 'Red 仁', 'Purple': 'Purple 愛', 'Yellow': 'Yellow 勤', 'Green': 'Green 誠' };
   const beepSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
@@ -409,10 +455,18 @@
   }
 
   window.onload = () => {
+    // 1. Instant load from localStorage cache
+    const cachedLeaderboard = localStorage.getItem('cached_leaderboard');
+    if (cachedLeaderboard) {
+      renderLeaderboards(JSON.parse(cachedLeaderboard));
+    }
+
     loadInitialData(idToken);
+
+    // 2. Automated background sync every 15 seconds
     setInterval(() => {
-      if (document.getElementById('liveRefresh').checked) refreshLeaderboard();
-    }, 12000);
+      refreshLeaderboard(true);
+    }, 15000);
   };
 
   async function loadInitialData(explicitToken) {
@@ -430,104 +484,123 @@
         if (logoutBtn) logoutBtn.style.display = 'inline-block';
         loadOptions();
       } else {
-        if (data.userEmail) {
-          b.innerText = `User: ${data.userEmail} (No Permission)`;
-        } else {
-          b.innerText = 'Public Mode';
-        }
+        b.innerText = data.userEmail ? `User: ${data.userEmail} (No Access)` : 'Public Mode';
         if (signinBtn) signinBtn.style.display = 'block';
         if (logoutBtn) logoutBtn.style.display = 'none';
         document.getElementById('teacherPanel').style.display = 'none';
       }
-      renderLeaderboards(data.leaderboard);
+
+      if (data.leaderboard) {
+        localStorage.setItem('cached_leaderboard', JSON.stringify(data.leaderboard));
+        renderLeaderboards(data.leaderboard);
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Initialization sync error:", err);
     }
   }
 
   async function loadOptions() {
-    const opts = await apiGet('getFilterOptions');
-    window.dropdownOpts = opts;
-    updateLookupDropdown();
-    document.getElementById('lookupType').addEventListener('change', updateLookupDropdown);
+    const cachedOpts = localStorage.getItem('cached_options');
+    if (cachedOpts) {
+      window.dropdownOpts = JSON.parse(cachedOpts);
+      updateLookupDropdown();
+    }
+    try {
+      const opts = await apiGet('getFilterOptions');
+      window.dropdownOpts = opts;
+      localStorage.setItem('cached_options', JSON.stringify(opts));
+      updateLookupDropdown();
+      document.getElementById('lookupType').removeEventListener('change', updateLookupDropdown);
+      document.getElementById('lookupType').addEventListener('change', updateLookupDropdown);
+    } catch(e) {}
   }
 
-function toggleScanner() {
+  function toggleScanner() {
     if (html5QrcodeScanner) {
       html5QrcodeScanner.clear().then(() => {
         html5QrcodeScanner = null;
         document.getElementById('scanBtn').innerText = "START SCANNER";
-        document.getElementById('readyBar').style.display = "none";
-      }).catch(err => console.error("Error stopping scanner:", err));
+      });
     } else {
       html5QrcodeScanner = new Html5Qrcode("reader");
-      
-      const config = { 
-        fps: 10, 
-        qrbox: { width: 220, height: 100 },
-        aspectRatio: 1.777778
-      };
-
       html5QrcodeScanner.start(
         { facingMode: "environment" }, 
-        config,
-        (decodedText) => { processScore(decodedText); },
+        { fps: 10, qrbox: { width: 220, height: 90 } },
+        (decodedText) => { onCodeScanned(decodedText); },
         (error) => {}
       ).then(() => {
         document.getElementById('scanBtn').innerText = "STOP SCANNER";
-        document.getElementById('readyBar').style.display = "block";
-      }).catch(err => {
-        console.error("Camera access failed:", err);
-        showStatus("Camera Error: Check Permissions", "status-error");
       });
     }
   }
 
-  function submitManual() {
-    const val = document.getElementById('manualId').value;
-    if (val) processScore(val);
-    document.getElementById('manualId').value = "";
-    document.getElementById('manualId').blur();
-  }
+  // Handle Scan Detection & Open Popup
+  async function onCodeScanned(scannedId) {
+    if (isScanningPaused || pendingStudentData) return;
+    isScanningPaused = true;
 
-  let isProcessing = false;
-  async function processScore(studentId) {
-    if (isProcessing) return;
-    isProcessing = true;
-    document.getElementById('readyBar').style.display = "none";
-    showStatus('Processing...', 'status-warn');
-    
+    // Retrieve Student Info
     try {
-      const res = await apiPost('recordPoint', { studentId: studentId });
-      isProcessing = false;
-      if (res.success) {
-        beepSuccess.play();
-        showStatus(`+1 Point!<br>${res.student.name} (${res.student.className})<br>Total Score: ${res.student.totalScore}`, 'status-success');
-        refreshLeaderboard();
-      } else if (res.cooldown) {
-        beepError.play();
-        showStatus(res.message, 'status-warn');
+      const res = await apiGet('getStudentDetails', { studentId: scannedId });
+      if (res.success && res.student) {
+        pendingStudentData = res.student;
+        showConfirmModal(res.student);
       } else {
         beepError.play();
-        showStatus(res.message, 'status-error');
+        alert(res.message || "Student ID not found.");
+        isScanningPaused = false;
       }
-    } catch (err) {
-      isProcessing = false;
+    } catch (e) {
       beepError.play();
-      showStatus('Network Error.', 'status-error');
+      alert("Network Error fetching student details.");
+      isScanningPaused = false;
     }
-
-    setTimeout(() => {
-      if (html5QrcodeScanner) document.getElementById('readyBar').style.display = "block";
-    }, 2500);
   }
 
-  function showStatus(html, className) {
-    const box = document.getElementById('statusBox');
-    box.className = `status-panel ${className}`;
-    box.innerHTML = html;
-    box.style.display = 'block';
-    setTimeout(() => { box.style.display = 'none'; }, 3000);
+  function submitManual() {
+    const val = document.getElementById('manualId').value.trim();
+    if (val) {
+      onCodeScanned(val);
+      document.getElementById('manualId').value = "";
+      document.getElementById('manualId').blur();
+    }
+  }
+
+  function showConfirmModal(student) {
+    document.getElementById('modalName').innerText = student.name || '-';
+    document.getElementById('modalId').innerText = student.id || '-';
+    document.getElementById('modalClass').innerText = `${student.className || ''} (${student.classNo || ''})`;
+    document.getElementById('modalGroup').innerText = student.englishGroup || '-';
+    document.getElementById('modalHouse').innerText = houseNames[student.house] || student.house || '-';
+    document.getElementById('modalScore').innerText = `${student.totalScore || 0} pt`;
+    
+    document.getElementById('confirmModal').style.display = 'flex';
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirmModal').style.display = 'none';
+    pendingStudentData = null;
+    isScanningPaused = false;
+  }
+
+  async function confirmPointAward() {
+    if (!pendingStudentData) return;
+    const student = pendingStudentData;
+    closeConfirmModal();
+
+    try {
+      const res = await apiPost('recordPoint', { studentId: student.id });
+      if (res.success) {
+        beepSuccess.play();
+        refreshLeaderboard(false);
+      } else {
+        beepError.play();
+        alert(res.message);
+      }
+    } catch (err) {
+      beepError.play();
+      alert("Failed to submit score log to server.");
+    }
   }
 
   function applyPreset() {
@@ -549,14 +622,21 @@ function toggleScanner() {
       document.getElementById('startDate').value = "";
       document.getElementById('endDate').value = "";
     }
-    refreshLeaderboard();
+    refreshLeaderboard(false);
   }
 
-  async function refreshLeaderboard() {
+  async function refreshLeaderboard(isSilent = false) {
     const start = document.getElementById('startDate').value;
     const end = document.getElementById('endDate').value;
-    const data = await apiGet('getLeaderboard', { startDate: start, endDate: end });
-    renderLeaderboards(data);
+    try {
+      const data = await apiGet('getLeaderboard', { startDate: start, endDate: end });
+      if (data && data.students) {
+        localStorage.setItem('cached_leaderboard', JSON.stringify(data));
+        renderLeaderboards(data);
+      }
+    } catch (e) {
+      if (!isSilent) console.error("Leaderboard refresh error:", e);
+    }
   }
 
   function renderLeaderboards(data) {
@@ -565,7 +645,6 @@ function toggleScanner() {
 
     const icons = ['🥇', '🥈', '🥉'];
 
-    // 1. 學生排行榜（含同分同名次圖示與名次）
     document.getElementById('studentList').innerHTML = (data.students || []).map(s => {
       const r = s.rank;
       const iconStr = r <= 3 ? icons[r - 1] : `#${r}`;
@@ -577,7 +656,6 @@ function toggleScanner() {
         </div>`;
     }).join('') || '<div style="padding:8px 0; font-size:0.85rem;">No speaking logs found.</div>';
 
-    // 2. 社屬排行榜（同分同名次）
     const maxHouse = Math.max(...(data.houses || []).map(h => h.score), 1);
     document.getElementById('houseList').innerHTML = (data.houses || []).map(h => `
       <div style="margin-bottom:8px;">
@@ -590,21 +668,20 @@ function toggleScanner() {
         </div>
       </div>`).join('');
 
-    // 3. 英文組別排行榜（同分同名次）
     document.getElementById('groupList').innerHTML = (data.groups || []).map(g => 
       `<div class="stat-row"><span>#${g.rank} ${g.name}</span><span>${g.score}</span></div>`
     ).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
 
-    // 4. 班別排行榜（同分同名次）
     document.getElementById('classList').innerHTML = (data.classes || []).map(c => 
       `<div class="stat-row"><span>#${c.rank} ${c.name}</span><span>${c.score}</span></div>`
     ).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
   }
 
   function updateLookupDropdown() {
+    if (!window.dropdownOpts) return;
     const type = document.getElementById('lookupType').value;
     const arr = type === 'class' ? window.dropdownOpts.classes : window.dropdownOpts.groups;
-    document.getElementById('lookupValue').innerHTML = arr.map(a => `<option value="${a}">${a}</option>`).join('');
+    document.getElementById('lookupValue').innerHTML = (arr || []).map(a => `<option value="${a}">${a}</option>`).join('');
   }
 
   async function lookupScores() {
