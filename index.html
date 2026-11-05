@@ -314,6 +314,10 @@
       font-size: 1.2rem;
       text-transform: uppercase;
     }
+    .modal-title.cooldown-title {
+      background: #ef4444;
+      color: white;
+    }
     .modal-info-row {
       display: flex;
       justify-content: space-between;
@@ -442,20 +446,27 @@
   </div>
 </div>
 
-<!-- STUDENT CONFIRMATION MODAL -->
+<!-- STUDENT CONFIRMATION / COOLDOWN MODAL -->
 <div id="confirmModal" class="modal-overlay">
   <div class="modal-card">
-    <div class="modal-title">Confirm Award Point</div>
-    <div class="modal-info-row"><span>Student Name:</span><span id="modalName">-</span></div>
-    <div class="modal-info-row"><span>Student ID:</span><span id="modalId">-</span></div>
-    <div class="modal-info-row"><span>Class & No:</span><span id="modalClass">-</span></div>
-    <div class="modal-info-row"><span>Eng Group:</span><span id="modalGroup">-</span></div>
-    <div class="modal-info-row"><span>House:</span><span id="modalHouse">-</span></div>
-    <div class="modal-info-row"><span>Current Score:</span><span id="modalScore">0 pt</span></div>
+    <div id="modalTitle" class="modal-title">Confirm Award Point</div>
     
-    <div class="modal-actions">
-      <button class="btn-confirm" onclick="confirmPointAward()">CONFIRM (+1)</button>
-      <button class="btn-cancel" onclick="closeConfirmModal()">CANCEL</button>
+    <div id="studentInfoSection">
+      <div class="modal-info-row"><span>Student Name:</span><span id="modalName">-</span></div>
+      <div class="modal-info-row"><span>Student ID:</span><span id="modalId">-</span></div>
+      <div class="modal-info-row"><span>Class & No:</span><span id="modalClass">-</span></div>
+      <div class="modal-info-row"><span>Eng Group:</span><span id="modalGroup">-</span></div>
+      <div class="modal-info-row"><span>House:</span><span id="modalHouse">-</span></div>
+      <div class="modal-info-row"><span>Current Score:</span><span id="modalScore">0 pt</span></div>
+    </div>
+
+    <div id="cooldownWarningSection" style="display:none; font-weight:700; padding:10px 0; font-size:0.95rem; text-align:center;">
+      ⚠️ <span id="cooldownMsg">Student scored recently. Please wait before scanning again.</span>
+    </div>
+    
+    <div class="modal-actions" id="modalActions">
+      <button class="btn-confirm" id="btnConfirmAction" onclick="confirmPointAward()">CONFIRM (+1)</button>
+      <button class="btn-cancel" id="btnCancelAction" onclick="closeConfirmModal()">CANCEL</button>
     </div>
   </div>
 </div>
@@ -487,6 +498,7 @@
     idToken = '';
     localStorage.removeItem('google_id_token');
     localStorage.removeItem('cached_students_db');
+    localStorage.removeItem('recent_scans');
     const signinBtn = document.querySelector('.g_id_signin');
     if (signinBtn) signinBtn.style.display = 'block';
     document.getElementById('logoutBtn').style.display = 'none';
@@ -504,7 +516,6 @@
     try {
       return JSON.parse(text);
     } catch(e) {
-      console.error("Non-JSON Response received:", text);
       return { success: false, message: "Server communication error." };
     }
   }
@@ -534,7 +545,6 @@
 
     loadInitialData(idToken);
 
-    // Background leaderboard polling every 15s
     setInterval(() => {
       refreshLeaderboard(true);
     }, 15000);
@@ -570,7 +580,6 @@
     }
   }
 
-  // Cache students and filter options locally for instant offline/speed lookup
   async function loadOptionsAndStudents() {
     try {
       const res = await apiGet('getAllStudentsAndOptions');
@@ -581,7 +590,6 @@
         updateLookupDropdown();
       }
     } catch(e) {
-      // Fallback to cache if offline
       const cachedOpts = localStorage.getItem('cached_options');
       if (cachedOpts) {
         window.dropdownOpts = JSON.parse(cachedOpts);
@@ -616,27 +624,38 @@
     }
   }
 
-  // INSTANT LOCAL LOOKUP (Zero network delay, zero camera freeze)
+  // INSTANT LOCAL LOOKUP & COOLDOWN CHECK
   function onCodeScanned(scannedId) {
     if (isScanningPaused || pendingStudentData) return;
     isScanningPaused = true;
 
-    // Pause camera scanning immediately to prevent freeze / double reads
     if (html5QrcodeScanner) {
-      html5QrcodeScanner.pause(true);
+      try { html5QrcodeScanner.pause(true); } catch(e) {}
     }
 
     const cleanId = String(scannedId).trim();
     const studentsMap = JSON.parse(localStorage.getItem('cached_students_db') || '{}');
     const student = studentsMap[cleanId] || studentsMap[cleanId.replace(/^0+/, '')];
 
-    if (student) {
-      pendingStudentData = student;
-      showConfirmModal(student);
-    } else {
+    if (!student) {
       beepError.play();
       alert(`Student ID not found: "${cleanId}"`);
       resumeScanner();
+      return;
+    }
+
+    // Check Cooldown Locally
+    let recentScans = JSON.parse(localStorage.getItem('recent_scans') || '{}');
+    let now = Date.now();
+    let lastScanTime = recentScans[student.id] || 0;
+
+    if (now - lastScanTime < 60000) {
+      let remainingSec = Math.ceil((lastScanTime + 60000 - now) / 1000);
+      beepError.play();
+      showCooldownModal(student, remainingSec);
+    } else {
+      pendingStudentData = student;
+      showConfirmModal(student);
     }
   }
 
@@ -650,6 +669,11 @@
   }
 
   function showConfirmModal(student) {
+    document.getElementById('modalTitle').innerText = "Confirm Award Point";
+    document.getElementById('modalTitle').className = "modal-title";
+    document.getElementById('studentInfoSection').style.display = 'block';
+    document.getElementById('cooldownWarningSection').style.display = 'none';
+
     document.getElementById('modalName').innerText = student.name || '-';
     document.getElementById('modalId').innerText = student.id || '-';
     document.getElementById('modalClass').innerText = `${student.className || ''} (${student.classNo || ''})`;
@@ -657,6 +681,27 @@
     document.getElementById('modalHouse').innerText = houseNames[student.house] || student.house || '-';
     document.getElementById('modalScore').innerText = `${student.totalScore || 0} pt`;
     
+    // Show confirm and cancel buttons
+    document.getElementById('btnConfirmAction').style.display = 'block';
+    document.getElementById('btnCancelAction').innerText = "CANCEL";
+    document.getElementById('btnCancelAction').style.display = 'block';
+
+    document.getElementById('confirmModal').style.display = 'flex';
+  }
+
+  function showCooldownModal(student, remainingSec) {
+    document.getElementById('modalTitle').innerText = "Cooldown Active";
+    document.getElementById('modalTitle').className = "modal-title cooldown-title";
+    document.getElementById('studentInfoSection').style.display = 'none';
+    
+    document.getElementById('cooldownWarningSection').style.display = 'block';
+    document.getElementById('cooldownMsg').innerText = `${student.name} (${student.className}) scored recently. Please wait ${remainingSec}s.`;
+
+    // Hide confirm button, show close button
+    document.getElementById('btnConfirmAction').style.display = 'none';
+    document.getElementById('btnCancelAction').innerText = "CLOSE";
+    document.getElementById('btnCancelAction').style.display = 'block';
+
     document.getElementById('confirmModal').style.display = 'flex';
   }
 
@@ -684,6 +729,12 @@
       const res = await apiPost('recordPoint', { studentId: student.id });
       if (res.success) {
         beepSuccess.play();
+        
+        // Record recent scan locally to enforce instant cooldown on next scan
+        let recentScans = JSON.parse(localStorage.getItem('recent_scans') || '{}');
+        recentScans[student.id] = Date.now();
+        localStorage.setItem('recent_scans', JSON.stringify(recentScans));
+
         // Update local cache score instantly
         const studentsMap = JSON.parse(localStorage.getItem('cached_students_db') || '{}');
         if (studentsMap[student.id]) {
