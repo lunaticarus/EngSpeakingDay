@@ -158,6 +158,7 @@
     .bg-Green { background-color: #10b981; }
 
     /* 防相機溢出與佈局遮擋樣式 */
+    /* Camera Container & Viewfinder Fixes */
     .scanner-wrapper { 
       position: relative; 
       width: 100%; 
@@ -166,38 +167,55 @@
       overflow: hidden;
       border: 3px solid var(--dp-color-ink);
       background: var(--dp-color-ink);
+      min-height: 200px;
     }
 
     #reader { 
       width: 100% !important; 
       border: none !important;
       background: var(--dp-color-ink);
-      overflow: hidden;
+      position: relative;
     }
 
-    #reader video, 
-    #reader canvas, 
-    #reader img {
+    /* Target only the actual video element injected by html5-qrcode */
+    #reader video {
       width: 100% !important;
-      max-width: 100% !important;
-      height: auto !important;
-      max-height: 220px !important;
+      height: 100% !important;
+      max-height: 250px !important;
       object-fit: cover !important;
       display: block !important;
     }
 
+    /* Clean up html5-qrcode extra internal containers & buttons */
+    #reader__scan_region {
+      background: transparent !important;
+    }
+
     #reader__dashboard_section_csr,
-    #reader__status_span {
+    #reader__dashboard_section_swaplink,
+    #reader__status_span,
+    #reader img {
       display: none !important;
     }
 
+    /* Position "READY" Bar cleanly over top of scanner */
     .camera-ready-bar {
-      position: absolute; top: 0; left: 0; right: 0;
-      background: #10b981; color: white; text-align: center; font-weight: 800;
-      font-size: 0.85rem; padding: 4px; border-bottom: 2px solid var(--dp-color-ink); z-index: 10;
-      display: none; animation: pulse 1.5s infinite;
+      position: absolute; 
+      top: 0; 
+      left: 0; 
+      right: 0;
+      background: #10b981; 
+      color: white; 
+      text-align: center; 
+      font-weight: 800;
+      font-size: 0.85rem; 
+      padding: 6px; 
+      border-bottom: 3px solid var(--dp-color-ink); 
+      z-index: 20;
+      display: none; 
+      animation: pulse 1.5s infinite;
     }
-    @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; } 100% { opacity: 0.8; } }
+    @keyframes pulse { 0% { opacity: 0.85; } 50% { opacity: 1; } 100% { opacity: 0.85; } }
 
     .action-btn-mobile {
       background: var(--dp-color-ground);
@@ -434,20 +452,34 @@
     document.getElementById('lookupType').addEventListener('change', updateLookupDropdown);
   }
 
-  function toggleScanner() {
+function toggleScanner() {
     if (html5QrcodeScanner) {
-      html5QrcodeScanner.clear();
-      html5QrcodeScanner = null;
-      document.getElementById('scanBtn').innerText = "START SCANNER";
-      document.getElementById('readyBar').style.display = "none";
+      html5QrcodeScanner.clear().then(() => {
+        html5QrcodeScanner = null;
+        document.getElementById('scanBtn').innerText = "START SCANNER";
+        document.getElementById('readyBar').style.display = "none";
+      }).catch(err => console.error("Error stopping scanner:", err));
     } else {
       html5QrcodeScanner = new Html5Qrcode("reader");
-      html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 220, height: 90 } },
+      
+      const config = { 
+        fps: 10, 
+        qrbox: { width: 220, height: 100 },
+        aspectRatio: 1.777778
+      };
+
+      html5QrcodeScanner.start(
+        { facingMode: "environment" }, 
+        config,
         (decodedText) => { processScore(decodedText); },
         (error) => {}
-      );
-      document.getElementById('scanBtn').innerText = "STOP SCANNER";
-      document.getElementById('readyBar').style.display = "block";
+      ).then(() => {
+        document.getElementById('scanBtn').innerText = "STOP SCANNER";
+        document.getElementById('readyBar').style.display = "block";
+      }).catch(err => {
+        console.error("Camera access failed:", err);
+        showStatus("Camera Error: Check Permissions", "status-error");
+      });
     }
   }
 
