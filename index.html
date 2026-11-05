@@ -601,25 +601,47 @@
     document.getElementById('lookupValue').innerHTML = (arr || []).map(a => `<option value="${a}">${a}</option>`).join('');
   }
 
-  async function lookupScores() {
+async function lookupScores() {
     const type = document.getElementById('lookupType').value;
     const val = document.getElementById('lookupValue').value;
     const start = document.getElementById('startDate').value;
     const end = document.getElementById('endDate').value;
     
+    if (!val) return;
+
     document.getElementById('lookupResults').innerHTML = 'Loading...';
     document.getElementById('lookupResults').style.display = 'block';
 
     try {
-      const qs = new URLSearchParams({ action: 'lookup', filterType: type, filterValue: val, startDate: start, endDate: end }).toString();
+      const qs = new URLSearchParams({ 
+        action: 'lookup', 
+        filterType: type, 
+        filterValue: val, 
+        startDate: start, 
+        endDate: end,
+        idToken: idToken // Pass teacher authentication token
+      }).toString();
+      
       const res = await (await fetch(`${GAS_API_URL}?${qs}`)).json();
       
+      if (!res.success) {
+        document.getElementById('lookupResults').innerHTML = res.message || 'Permission denied or lookup failed.';
+        return;
+      }
+
       if (!res.students || res.students.length === 0) {
         document.getElementById('lookupResults').innerHTML = 'No students found.';
       } else {
-        document.getElementById('lookupResults').innerHTML = res.students.map(r => `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #000; padding:3px 0; font-size:0.85rem;"><span>${r.classNo ? r.classNo + '. ' : ''}${r.name}</span><strong>${r.score} pt</strong></div>`).join('');
+        document.getElementById('lookupResults').innerHTML = res.students.map(r => `
+          <div style="display:flex; justify-content:space-between; border-bottom:1px solid #000; padding:3px 0; font-size:0.85rem;">
+            <span>${r.classNo ? r.classNo + '. ' : ''}${r.name}</span>
+            <strong>${r.score} pt</strong>
+          </div>
+        `).join('');
       }
-    } catch(e) { document.getElementById('lookupResults').innerHTML = 'Search failed.'; }
+    } catch(e) { 
+      document.getElementById('lookupResults').innerHTML = 'Search failed.'; 
+    }
   }
 </script>
 </body>
