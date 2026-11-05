@@ -212,39 +212,85 @@
   let idToken = localStorage.getItem('google_id_token') || '';
   let pendingStudentData = null;
 
-  // Preload audio objects
-  const sndSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
-  const sndError = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-  sndSuccess.preload = 'auto'; 
-  sndError.preload = 'auto';
+  // --- Sleek Synthesized Web Audio API Engine ---
+  let audioCtx = null;
 
-  let audioUnlocked = false;
-
-  // Unlock browser audio restriction on first tap/click anywhere
-  function unlockAudio() {
-    if (audioUnlocked) return;
-    [sndSuccess, sndError].forEach(audio => {
-      audio.play().then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-      }).catch(() => {});
-    });
-    audioUnlocked = true;
-    document.removeEventListener('click', unlockAudio);
-    document.removeEventListener('touchstart', unlockAudio);
+  function initAudioContext() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) audioCtx = new AudioContext();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
   }
 
-  document.addEventListener('click', unlockAudio);
-  document.addEventListener('touchstart', unlockAudio);
+  document.addEventListener('click', initAudioContext, { once: true });
+  document.addEventListener('touchstart', initAudioContext, { once: true });
 
-  function playSound(audioEl) {
-    try {
-      audioEl.currentTime = 0;
-      const playPromise = audioEl.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(e => console.warn("Audio autoplay blocked by browser:", e));
-      }
-    } catch(e) {}
+  // Sleek Sound Profiles
+  function playSoundEffect(type) {
+    initAudioContext();
+    if (!audioCtx) return;
+
+    const now = audioCtx.currentTime;
+
+    if (type === 'success') {
+      // Sleek double-tone digital chime (E6 -> G6)
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc1.type = 'sine'; osc2.type = 'sine';
+      osc1.frequency.setValueAtTime(1318.51, now); // E6
+      osc2.frequency.setValueAtTime(1567.98, now + 0.08); // G6
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+      osc1.connect(gain); osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc1.start(now); osc1.stop(now + 0.08);
+      osc2.start(now + 0.08); osc2.stop(now + 0.3);
+
+    } else if (type === 'scan') {
+      // Modern subtle tap sound when code detected
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(880, now); // A5
+      osc.frequency.exponentialRampToValueAtTime(440, now + 0.05);
+
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.06);
+
+    } else if (type === 'error') {
+      // Smooth modern double low-frequency drop (G3 -> E3)
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc1.type = 'sine'; osc2.type = 'sine';
+      osc1.frequency.setValueAtTime(196.00, now); // G3
+      osc2.frequency.setValueAtTime(164.81, now + 0.1); // E3
+
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+      osc1.connect(gain); osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc1.start(now); osc1.stop(now + 0.1);
+      osc2.start(now + 0.1); osc2.stop(now + 0.35);
+    }
   }
 
   function renderModal(title, titleStyle, bodyHtml, actionsHtml) {
@@ -260,7 +306,6 @@
     pendingStudentData = null;
   }
 
-  // Update Auth Elements Instantly
   function updateAuthUI(isLoggedIn, userEmail = '') {
     const googleBtn = document.getElementById('googleSignInContainer');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -326,7 +371,6 @@
   }
 
   window.onload = () => {
-    // Check local token synchronously to prevent Google Login button flash on refresh
     if (idToken) {
       updateAuthUI(true);
     } else {
@@ -360,7 +404,7 @@
         btn.innerText = "STOP SCANNER";
       } catch (err) {
         console.error("Camera Start Error:", err);
-        playSound(sndError);
+        playSoundEffect('error');
         renderModal("Camera Error", "error", `<div style="font-weight:700; text-align:center;">Could not access camera. Check permissions.</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
         await stopScanner();
       } finally {
@@ -412,7 +456,7 @@
     const student = studentsMap[cleanId] || studentsMap[cleanId.replace(/^0+/, '')];
 
     if (!student) {
-      playSound(sndError);
+      playSoundEffect('error');
       renderModal("Not Found", "error", `<div style="font-weight:700; text-align:center;">Student ID not found:<br>"${cleanId}"</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
       return;
     }
@@ -423,14 +467,14 @@
 
     if (now - lastScanTime < 60000) {
       let remainingSec = Math.ceil((lastScanTime + 60000 - now) / 1000);
-      playSound(sndError);
+      playSoundEffect('error');
       renderModal("Cooldown Active", "error", 
         `<div style="font-weight:700; text-align:center;">⚠️ ${student.name} (${student.className}) scored recently.<br>Wait ${remainingSec}s.</div>`,
         `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`
       );
     } else {
       pendingStudentData = student;
-      playSound(sndSuccess);
+      playSoundEffect('scan');
       renderModal("Confirm Award Point", "",
         `<div class="modal-info-row"><span>Name:</span><span>${student.name}</span></div>
          <div class="modal-info-row"><span>Class:</span><span>${student.className} (${student.classNo})</span></div>
@@ -456,7 +500,7 @@
       })).json();
 
       if (res.success) {
-        playSound(sndSuccess);
+        playSoundEffect('success');
         
         let recentScans = JSON.parse(localStorage.getItem('recent_scans') || '{}');
         recentScans[student.id] = Date.now();
@@ -471,17 +515,17 @@
         closeModal();
         refreshLeaderboard(true);
       } else if (res.cooldown) {
-        playSound(sndError);
+        playSoundEffect('error');
         renderModal("Cooldown Active", "error", 
           `<div style="font-weight:700; text-align:center;">⚠️ ${res.message}</div>`,
           `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`
         );
       } else {
-        playSound(sndError);
+        playSoundEffect('error');
         renderModal("Error", "error", `<div style="font-weight:700; text-align:center;">${res.message}</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
       }
     } catch (err) {
-      playSound(sndError);
+      playSoundEffect('error');
       renderModal("Network Error", "error", `<div style="font-weight:700; text-align:center;">Failed to connect to server.</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
     }
   }
