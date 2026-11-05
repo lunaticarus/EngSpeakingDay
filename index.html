@@ -157,7 +157,40 @@
     .bg-Yellow { background-color: #facc15; }
     .bg-Green { background-color: #10b981; }
 
-    .scanner-wrapper { position: relative; width: 100%; }
+    /* 防相機溢出與佈局遮擋樣式 */
+    .scanner-wrapper { 
+      position: relative; 
+      width: 100%; 
+      max-width: 400px;
+      margin: 0 auto;
+      overflow: hidden;
+      border: 3px solid var(--dp-color-ink);
+      background: var(--dp-color-ink);
+    }
+
+    #reader { 
+      width: 100% !important; 
+      border: none !important;
+      background: var(--dp-color-ink);
+      overflow: hidden;
+    }
+
+    #reader video, 
+    #reader canvas, 
+    #reader img {
+      width: 100% !important;
+      max-width: 100% !important;
+      height: auto !important;
+      max-height: 220px !important;
+      object-fit: cover !important;
+      display: block !important;
+    }
+
+    #reader__dashboard_section_csr,
+    #reader__status_span {
+      display: none !important;
+    }
+
     .camera-ready-bar {
       position: absolute; top: 0; left: 0; right: 0;
       background: #10b981; color: white; text-align: center; font-weight: 800;
@@ -193,8 +226,6 @@
       outline: none;
     }
     .input-rect::placeholder { color: rgba(255,255,255,0.7); }
-
-    #reader { border: 3px solid var(--dp-color-ink); background: var(--dp-color-ink); width: 100%; max-height: 250px; }
 
     .status-panel {
       padding: 10px 14px; border: 3px solid var(--dp-color-ink); font-weight: 700; font-size: 0.95rem; display: none; margin-top: 10px;
@@ -317,7 +348,6 @@
   const beepSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
   const beepError = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
 
-  // Google 登入成功 Callback
   function handleCredentialResponse(response) {
     idToken = response.credential;
     localStorage.setItem('google_id_token', idToken);
@@ -502,17 +532,25 @@
     document.getElementById('grandTotal').innerText = data.totalInteractions || 0;
 
     const icons = ['🥇', '🥈', '🥉'];
-    document.getElementById('studentList').innerHTML = (data.students || []).map((s, i) => `
-      <div class="stat-row ${i===0?'podium-1':(i===1?'podium-2':(i===2?'podium-3':''))}">
-        <span>${i<3?icons[i]:'#'+(i+1)} ${s.name} (${s.className})</span>
-        <span>${s.score} pt</span>
-      </div>`).join('') || '<div style="padding:8px 0; font-size:0.85rem;">No speaking logs found.</div>';
 
+    // 1. 學生排行榜（含同分同名次圖示與名次）
+    document.getElementById('studentList').innerHTML = (data.students || []).map(s => {
+      const r = s.rank;
+      const iconStr = r <= 3 ? icons[r - 1] : `#${r}`;
+      const podiumClass = r === 1 ? 'podium-1' : (r === 2 ? 'podium-2' : (r === 3 ? 'podium-3' : ''));
+      return `
+        <div class="stat-row ${podiumClass}">
+          <span>${iconStr} ${s.name} (${s.className})</span>
+          <span>${s.score} pt</span>
+        </div>`;
+    }).join('') || '<div style="padding:8px 0; font-size:0.85rem;">No speaking logs found.</div>';
+
+    // 2. 社屬排行榜（同分同名次）
     const maxHouse = Math.max(...(data.houses || []).map(h => h.score), 1);
-    document.getElementById('houseList').innerHTML = (data.houses || []).map((h, i) => `
+    document.getElementById('houseList').innerHTML = (data.houses || []).map(h => `
       <div style="margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.85rem;">
-          <span>#${i+1} ${houseNames[h.name] || h.name}</span>
+          <span>#${h.rank} ${houseNames[h.name] || h.name}</span>
           <span>${h.score} pt</span>
         </div>
         <div class="house-bar-container">
@@ -520,8 +558,15 @@
         </div>
       </div>`).join('');
 
-    document.getElementById('groupList').innerHTML = (data.groups || []).map((g, i) => `<div class="stat-row"><span>#${i+1} ${g.name}</span><span>${g.score}</span></div>`).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
-    document.getElementById('classList').innerHTML = (data.classes || []).map((c, i) => `<div class="stat-row"><span>#${i+1} ${c.name}</span><span>${c.score}</span></div>`).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
+    // 3. 英文組別排行榜（同分同名次）
+    document.getElementById('groupList').innerHTML = (data.groups || []).map(g => 
+      `<div class="stat-row"><span>#${g.rank} ${g.name}</span><span>${g.score}</span></div>`
+    ).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
+
+    // 4. 班別排行榜（同分同名次）
+    document.getElementById('classList').innerHTML = (data.classes || []).map(c => 
+      `<div class="stat-row"><span>#${c.rank} ${c.name}</span><span>${c.score}</span></div>`
+    ).join('') || '<div style="padding:6px 0; font-size:0.85rem;">-</div>';
   }
 
   function updateLookupDropdown() {
