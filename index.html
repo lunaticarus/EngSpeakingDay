@@ -28,7 +28,60 @@
       -webkit-text-size-adjust: 100%;
     }
 
-    .container { display: flex; flex-direction: column; min-height: 100vh; border: 3px solid var(--dp-color-ink); }
+    /* Landing Screen Overlay */
+    #landingOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--dp-color-ground);
+      border: 4px solid var(--dp-color-ink);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .landing-box {
+      background: #ffffff;
+      border: 4px solid var(--dp-color-ink);
+      box-shadow: 8px 8px 0px var(--dp-color-ink);
+      padding: 32px 24px;
+      max-width: 420px;
+      width: 100%;
+    }
+
+    .loader-bar {
+      width: 100%;
+      height: 12px;
+      border: 2px solid var(--dp-color-ink);
+      background: var(--dp-color-ground);
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .loader-progress {
+      width: 40%;
+      height: 100%;
+      background: var(--dp-color-field);
+      animation: loading 1.2s infinite ease-in-out;
+    }
+
+    @keyframes loading {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(250%); }
+    }
+
+    /* Main Container */
+    .container { 
+      display: flex; 
+      flex-direction: column; 
+      min-height: 100vh; 
+      border: 3px solid var(--dp-color-ink); 
+      visibility: hidden; /* Hidden until preloaded */
+    }
     @media (min-width: 900px) { .container { flex-direction: row; } }
 
     .plane-main { flex: 1 1 60%; padding: clamp(12px, 3vw, 36px); border-bottom: 3px solid var(--dp-color-ink); }
@@ -58,7 +111,6 @@
     .house-bar { height: 100%; transition: width 0.5s ease; }
     .bg-Red { background-color: #ef4444; } .bg-Purple { background-color: #a855f7; } .bg-Yellow { background-color: #facc15; } .bg-Green { background-color: #10b981; }
 
-    /* Hide wrapper completely when scanner is inactive */
     .scanner-wrapper { 
       position: relative; 
       width: 100%; 
@@ -82,7 +134,6 @@
     .input-rect { background: var(--dp-color-field); color: #fff; border: 3px solid var(--dp-color-ink); padding: 10px 12px; font-size: 1rem; font-weight: 700; width: 100%; outline: none; }
     .input-rect::placeholder { color: rgba(255,255,255,0.7); }
 
-    /* Controls & Date Layout */
     .controls-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
     select { padding: 6px 10px; border: 2.5px solid var(--dp-color-ink); font-weight: 700; font-size: 0.85rem; background: #ffffff; width: 100%; max-width: 260px; }
     
@@ -114,13 +165,27 @@
 </head>
 <body>
 
-<div class="container">
+<!-- LANDING OVERLAY -->
+<div id="landingOverlay">
+  <div class="landing-box">
+    <h1 style="font-size:1.8rem; margin-bottom:8px;">English Speaking Day</h1>
+    <p style="font-weight:700; font-size:0.9rem; text-transform:uppercase;" id="landingStatus">Preloading Leaderboard & Session...</p>
+    <div class="loader-bar"><div class="loader-progress"></div></div>
+  </div>
+</div>
+
+<div class="container" id="mainContainer">
   <div class="plane-main">
     <div class="header-bar">
-      <h1>🌟English Speaking Day🌟</h1>
+      <h1>English Speaking Day</h1>
       <div style="display:flex; align-items:center; gap:8px;">
         <div id="g_id_onload" data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
-        <div class="g_id_signin" id="googleSignInContainer" data-type="standard" data-size="small" data-theme="outline"></div>
+        
+        <!-- Strict Display Wrapper for Google Sign-In -->
+        <div id="authWrapper" style="display:inline-block;">
+          <div class="g_id_signin" id="googleSignInBtn" data-type="standard" data-size="small" data-theme="outline"></div>
+        </div>
+        
         <button id="logoutBtn" class="btn-square" style="display:none; padding:4px 8px; font-size:0.75rem; background:#ef4444;" onclick="logout()">Logout</button>
         <div class="user-badge" id="userBadge">Public Mode</div>
       </div>
@@ -191,7 +256,6 @@
         <select id="lookupValue" style="flex:1;"></select>
         <button class="btn-square" onclick="lookupScores()">Search</button>
       </div>
-      <!-- Increased max-height from 160px to 340px for comfortable reading -->
       <div id="lookupResults" style="max-height:340px; overflow-y:auto; border:2px solid black; padding:6px; margin-top:6px; display:none; background:#ffffff;"></div>
     </div>
   </div>
@@ -213,7 +277,7 @@
   let idToken = localStorage.getItem('google_id_token') || '';
   let pendingStudentData = null;
 
-  // --- Sleek Synthesized Web Audio API Engine ---
+  // --- Web Audio Engine ---
   let audioCtx = null;
 
   function initAudioContext() {
@@ -232,61 +296,28 @@
   function playSoundEffect(type) {
     initAudioContext();
     if (!audioCtx) return;
-
     const now = audioCtx.currentTime;
 
     if (type === 'success') {
-      const osc1 = audioCtx.createOscillator();
-      const osc2 = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
+      const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gain = audioCtx.createGain();
       osc1.type = 'sine'; osc2.type = 'sine';
-      osc1.frequency.setValueAtTime(1318.51, now);
-      osc2.frequency.setValueAtTime(1567.98, now + 0.08);
-
-      gain.gain.setValueAtTime(0.12, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-
-      osc1.connect(gain); osc2.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc1.start(now); osc1.stop(now + 0.08);
-      osc2.start(now + 0.08); osc2.stop(now + 0.3);
-
+      osc1.frequency.setValueAtTime(1318.51, now); osc2.frequency.setValueAtTime(1567.98, now + 0.08);
+      gain.gain.setValueAtTime(0.12, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+      osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+      osc1.start(now); osc1.stop(now + 0.08); osc2.start(now + 0.08); osc2.stop(now + 0.3);
     } else if (type === 'scan') {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(880, now);
-      osc.frequency.exponentialRampToValueAtTime(440, now + 0.05);
-
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.06);
-
+      const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+      osc.type = 'triangle'; osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(440, now + 0.05);
+      gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + 0.06);
     } else if (type === 'error') {
-      const osc1 = audioCtx.createOscillator();
-      const osc2 = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
+      const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gain = audioCtx.createGain();
       osc1.type = 'sine'; osc2.type = 'sine';
-      osc1.frequency.setValueAtTime(196.00, now);
-      osc2.frequency.setValueAtTime(164.81, now + 0.1);
-
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-      osc1.connect(gain); osc2.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      osc1.start(now); osc1.stop(now + 0.1);
-      osc2.start(now + 0.1); osc2.stop(now + 0.35);
+      osc1.frequency.setValueAtTime(196.00, now); osc2.frequency.setValueAtTime(164.81, now + 0.1);
+      gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+      osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+      osc1.start(now); osc1.stop(now + 0.1); osc2.start(now + 0.1); osc2.stop(now + 0.35);
     }
   }
 
@@ -303,8 +334,9 @@
     pendingStudentData = null;
   }
 
+  // Strict Authentication & Header Button Manager
   function updateAuthUI(isLoggedIn, userEmail = '') {
-    const googleBtn = document.getElementById('googleSignInContainer');
+    const authWrapper = document.getElementById('authWrapper');
     const logoutBtn = document.getElementById('logoutBtn');
     const userBadge = document.getElementById('userBadge');
     const teacherPanel = document.getElementById('teacherPanel');
@@ -312,12 +344,12 @@
     const emailToDisplay = userEmail || localStorage.getItem('cached_user_email') || '';
 
     if (isLoggedIn) {
-      if (googleBtn) googleBtn.style.display = 'none';
+      if (authWrapper) authWrapper.style.display = 'none'; // Completely hide login container
       if (logoutBtn) logoutBtn.style.display = 'inline-block';
       userBadge.innerText = emailToDisplay ? `Teacher: ${emailToDisplay}` : 'Teacher Terminal';
       if (teacherPanel) teacherPanel.style.display = 'flex';
     } else {
-      if (googleBtn) googleBtn.style.display = 'block';
+      if (authWrapper) authWrapper.style.display = 'inline-block'; // Show login container
       if (logoutBtn) logoutBtn.style.display = 'none';
       userBadge.innerText = 'Public Mode';
       if (teacherPanel) teacherPanel.style.display = 'none';
@@ -325,9 +357,10 @@
   }
 
   function handleCredentialResponse(response) {
+    document.getElementById('landingOverlay').style.display = 'flex';
+    document.getElementById('landingStatus').innerText = "Authenticating Teacher...";
     idToken = response.credential;
     localStorage.setItem('google_id_token', idToken);
-    updateAuthUI(true);
     loadInitialData();
   }
 
@@ -361,7 +394,7 @@
         if (idToken) {
           document.getElementById('userBadge').innerText = res.userEmail ? `User: ${res.userEmail} (No Access)` : 'Public Mode';
           document.getElementById('teacherPanel').style.display = 'none';
-          document.getElementById('googleSignInContainer').style.display = 'none';
+          document.getElementById('authWrapper').style.display = 'none';
           document.getElementById('logoutBtn').style.display = 'inline-block';
         } else {
           updateAuthUI(false);
@@ -374,10 +407,15 @@
       }
     } catch (e) {
       console.error("Init Error:", e);
+    } finally {
+      // Reveal main UI after preloading is complete
+      document.getElementById('landingOverlay').style.display = 'none';
+      document.getElementById('mainContainer').style.visibility = 'visible';
     }
   }
 
   window.onload = () => {
+    // Initial silent check
     const cachedIsTeacher = localStorage.getItem('cached_is_teacher') === 'true';
     if (idToken && cachedIsTeacher) {
       updateAuthUI(true, localStorage.getItem('cached_user_email') || '');
@@ -458,7 +496,6 @@
 
   async function onCodeScanned(scannedId) {
     if (pendingStudentData) return;
-    
     await stopScanner();
 
     const cleanId = String(scannedId).trim();
