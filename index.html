@@ -58,8 +58,21 @@
     .house-bar { height: 100%; transition: width 0.5s ease; }
     .bg-Red { background-color: #ef4444; } .bg-Purple { background-color: #a855f7; } .bg-Yellow { background-color: #facc15; } .bg-Green { background-color: #10b981; }
 
-    /* Camera specific overrides */
-    .scanner-wrapper { position: relative; width: 100%; max-width: 400px; margin: 0 auto; border: 3px solid var(--dp-color-ink); background: var(--dp-color-ink); overflow: hidden; min-height: 200px; }
+    /* Hide wrapper completely when scanner is inactive */
+    .scanner-wrapper { 
+      position: relative; 
+      width: 100%; 
+      max-width: 400px; 
+      margin: 0 auto; 
+      border: 3px solid var(--dp-color-ink); 
+      background: var(--dp-color-ink); 
+      overflow: hidden; 
+      display: none; 
+    }
+    .scanner-wrapper.active {
+      display: block;
+    }
+
     #reader { width: 100% !important; border: none !important; background: var(--dp-color-ink) !important; }
     #reader__scan_region { background: var(--dp-color-ink) !important; }
     #reader video { width: 100% !important; height: 220px !important; object-fit: cover !important; display: block !important; }
@@ -154,7 +167,7 @@
   <div class="plane-action" id="teacherPanel" style="display:none;">
     <h2 style="background:var(--dp-color-ground); color:var(--dp-color-ink);">Teacher Terminal</h2>
     
-    <div class="scanner-wrapper">
+    <div class="scanner-wrapper" id="scannerWrapper">
       <div id="reader"></div>
     </div>
     <button class="action-btn-mobile" id="scanBtn" onclick="toggleScanner()">START SCANNER</button>
@@ -194,17 +207,15 @@
   let idToken = localStorage.getItem('google_id_token') || '';
   let pendingStudentData = null;
 
-  // Preload audio files for instant sync
   const sndSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
   const sndError = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
   sndSuccess.preload = 'auto'; sndError.preload = 'auto';
 
   function playSound(audioEl) {
     audioEl.currentTime = 0;
-    audioEl.play().catch(e => console.warn("Audio blocked by browser:", e));
+    audioEl.play().catch(e => console.warn("Audio play error:", e));
   }
 
-  // Unified Modal Renderer
   function renderModal(title, titleStyle, bodyHtml, actionsHtml) {
     document.getElementById('modalTitle').className = `modal-title ${titleStyle}`;
     document.getElementById('modalTitle').innerText = title;
@@ -218,7 +229,6 @@
     pendingStudentData = null;
   }
 
-  // Authenticate & Initialization
   function handleCredentialResponse(response) {
     idToken = response.credential;
     localStorage.setItem('google_id_token', idToken);
@@ -238,11 +248,9 @@
   }
 
   async function loadInitialData() {
-    // 1. Instantly load from cache
     const cachedLb = localStorage.getItem('cached_leaderboard');
     if (cachedLb) renderLeaderboards(JSON.parse(cachedLb));
     
-    // 2. Fetch fresh overarching data payload
     try {
       const qs = new URLSearchParams({ action: 'init', idToken: idToken }).toString();
       const res = await (await fetch(`${GAS_API_URL}?${qs}`)).json();
@@ -274,44 +282,75 @@
     document.getElementById('lookupType').addEventListener('change', updateLookupDropdown);
   };
 
-  // Camera Functions (Auto-turn-off fixed)
+  // Toggle & Auto-collapse Scanner Container
   async function toggleScanner() {
+    const btn = document.getElementById('scanBtn');
+    const wrapper = document.getElementById('scannerWrapper');
+
     if (html5QrcodeScanner) {
       await stopScanner();
     } else {
-      html5QrcodeScanner = new Html5Qrcode("reader");
-      html5QrcodeScanner.start(
-        { facingMode: "environment" }, 
-        { fps: 10, qrbox: { width: 220, height: 90 }, aspectRatio: 1.777778 },
-        (decodedText) => onCodeScanned(decodedText),
-        (err) => {}
-      ).then(() => {
-        document.getElementById('scanBtn').innerText = "STOP SCANNER";
-      }).catch(err => {
+      btn.innerText = "INITIALIZING...";
+      btn.disabled = true;
+      wrapper.classList.add('active'); // Reveal black wrapper box
+
+      try {
+        html5QrcodeScanner = new Html5Qrcode("reader");
+        await html5QrcodeScanner.start(
+          { facingMode: "environment" }, 
+          { fps: 10, qrbox: { width: 220, height: 90 }, aspectRatio: 1.777778 },
+          (decodedText) => onCodeScanned(decodedText),
+          (err) => {}
+        );
+        btn.innerText = "STOP SCANNER";
+      } catch (err) {
+        console.error("Camera Start Error:", err);
         playSound(sndError);
-        renderModal("Camera Error", "error", `<p>Check permissions.</p>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
-      });
+        renderModal("Camera Error", "error", `<div style="font-weight:700; text-align:center;">Could not access camera. Check permissions.</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
+        await stopScanner();
+      } finally {
+        btn.disabled = false;
+      }
     }
   }
 
   async function stopScanner() {
+    const btn = document.getElementById('scanBtn');
+    const wrapper = document.getElementById('scannerWrapper');
+    btn.disabled = true;
+
     if (html5QrcodeScanner) {
-      try { await html5QrcodeScanner.clear(); } catch(e) {}
-      html5QrcodeScanner = null;
-      document.getElementById('scanBtn').innerText = "START SCANNER";
+      try {
+        if (html5QrcodeScanner.isScanning) {
+          await html5QrcodeScanner.stop();
+        }
+        await html5QrcodeScanner.clear();
+      } catch (e) {
+        console.warn("Scanner stop exception:", e);
+      } finally {
+        html5QrcodeScanner = null;
+      }
     }
+
+    document.getElementById('reader').innerHTML = '';
+    wrapper.classList.remove('active'); // Collapse and hide black box completely
+    btn.innerText = "START SCANNER";
+    btn.disabled = false;
   }
 
   function submitManual() {
     const val = document.getElementById('manualId').value.trim();
-    if (val) { onCodeScanned(val); document.getElementById('manualId').value = ""; document.getElementById('manualId').blur(); }
+    if (val) { 
+      onCodeScanned(val); 
+      document.getElementById('manualId').value = ""; 
+      document.getElementById('manualId').blur(); 
+    }
   }
 
-  // Scan & Validation Workflow
   async function onCodeScanned(scannedId) {
     if (pendingStudentData) return;
     
-    // Automatically Turn Off Camera after detection
+    // Shut down scanner & hide box instantly upon scan
     await stopScanner();
 
     const cleanId = String(scannedId).trim();
@@ -324,7 +363,7 @@
       return;
     }
 
-    // Local Cooldown Check
+    // Check Local 60s Cooldown
     let recentScans = JSON.parse(localStorage.getItem('recent_scans') || '{}');
     let now = Date.now();
     let lastScanTime = recentScans[student.id] || 0;
@@ -355,7 +394,6 @@
     if (!pendingStudentData) return;
     const student = pendingStudentData;
     
-    // Switch to loading state
     document.getElementById('modalActions').innerHTML = `<div style="text-align:center; width:100%; font-weight:bold;">Processing...</div>`;
 
     try {
@@ -367,7 +405,6 @@
       if (res.success) {
         playSound(sndSuccess);
         
-        // Update Local State Instantly
         let recentScans = JSON.parse(localStorage.getItem('recent_scans') || '{}');
         recentScans[student.id] = Date.now();
         localStorage.setItem('recent_scans', JSON.stringify(recentScans));
@@ -381,7 +418,6 @@
         closeModal();
         refreshLeaderboard(true);
       } else if (res.cooldown) {
-        // Handle Server Cooldown Clash smoothly in UI
         playSound(sndError);
         renderModal("Cooldown Active", "error", 
           `<div style="font-weight:700; text-align:center;">⚠️ ${res.message}</div>`,
@@ -397,7 +433,6 @@
     }
   }
 
-  // --- Leaderboard & Lookup Utilities ---
   function applyPreset() {
     const val = document.getElementById('presetRange').value;
     const now = new Date();
