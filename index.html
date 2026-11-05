@@ -228,7 +228,6 @@
   document.addEventListener('click', initAudioContext, { once: true });
   document.addEventListener('touchstart', initAudioContext, { once: true });
 
-  // Sleek Sound Profiles
   function playSoundEffect(type) {
     initAudioContext();
     if (!audioCtx) return;
@@ -236,14 +235,13 @@
     const now = audioCtx.currentTime;
 
     if (type === 'success') {
-      // Sleek double-tone digital chime (E6 -> G6)
       const osc1 = audioCtx.createOscillator();
       const osc2 = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
 
       osc1.type = 'sine'; osc2.type = 'sine';
-      osc1.frequency.setValueAtTime(1318.51, now); // E6
-      osc2.frequency.setValueAtTime(1567.98, now + 0.08); // G6
+      osc1.frequency.setValueAtTime(1318.51, now);
+      osc2.frequency.setValueAtTime(1567.98, now + 0.08);
 
       gain.gain.setValueAtTime(0.12, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
@@ -255,12 +253,11 @@
       osc2.start(now + 0.08); osc2.stop(now + 0.3);
 
     } else if (type === 'scan') {
-      // Modern subtle tap sound when code detected
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
 
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(880, now); // A5
+      osc.frequency.setValueAtTime(880, now);
       osc.frequency.exponentialRampToValueAtTime(440, now + 0.05);
 
       gain.gain.setValueAtTime(0.15, now);
@@ -273,14 +270,13 @@
       osc.stop(now + 0.06);
 
     } else if (type === 'error') {
-      // Smooth modern double low-frequency drop (G3 -> E3)
       const osc1 = audioCtx.createOscillator();
       const osc2 = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
 
       osc1.type = 'sine'; osc2.type = 'sine';
-      osc1.frequency.setValueAtTime(196.00, now); // G3
-      osc2.frequency.setValueAtTime(164.81, now + 0.1); // E3
+      osc1.frequency.setValueAtTime(196.00, now);
+      osc2.frequency.setValueAtTime(164.81, now + 0.1);
 
       gain.gain.setValueAtTime(0.2, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
@@ -306,20 +302,25 @@
     pendingStudentData = null;
   }
 
+  // Consistent Authentication UI Sync
   function updateAuthUI(isLoggedIn, userEmail = '') {
     const googleBtn = document.getElementById('googleSignInContainer');
     const logoutBtn = document.getElementById('logoutBtn');
     const userBadge = document.getElementById('userBadge');
+    const teacherPanel = document.getElementById('teacherPanel');
+
+    const emailToDisplay = userEmail || localStorage.getItem('cached_user_email') || '';
 
     if (isLoggedIn) {
       if (googleBtn) googleBtn.style.display = 'none';
       if (logoutBtn) logoutBtn.style.display = 'inline-block';
-      if (userEmail) userBadge.innerText = `Teacher: ${userEmail}`;
+      userBadge.innerText = emailToDisplay ? `Teacher: ${emailToDisplay}` : 'Teacher Terminal';
+      if (teacherPanel) teacherPanel.style.display = 'flex';
     } else {
       if (googleBtn) googleBtn.style.display = 'block';
       if (logoutBtn) logoutBtn.style.display = 'none';
       userBadge.innerText = 'Public Mode';
-      document.getElementById('teacherPanel').style.display = 'none';
+      if (teacherPanel) teacherPanel.style.display = 'none';
     }
   }
 
@@ -346,19 +347,25 @@
       const res = await (await fetch(`${GAS_API_URL}?${qs}`)).json();
 
       if (res.isTeacher) {
+        localStorage.setItem('cached_user_email', res.userEmail || '');
+        localStorage.setItem('cached_is_teacher', 'true');
         updateAuthUI(true, res.userEmail);
-        document.getElementById('teacherPanel').style.display = 'flex';
+
         localStorage.setItem('cached_students_db', JSON.stringify(res.studentsMap || {}));
-        
         window.dropdownOpts = { classes: res.classes || [], groups: res.groups || [] };
         updateLookupDropdown();
       } else {
+        localStorage.removeItem('cached_user_email');
+        localStorage.removeItem('cached_is_teacher');
+        
         if (idToken) {
           document.getElementById('userBadge').innerText = res.userEmail ? `User: ${res.userEmail} (No Access)` : 'Public Mode';
+          document.getElementById('teacherPanel').style.display = 'none';
+          document.getElementById('googleSignInContainer').style.display = 'none';
+          document.getElementById('logoutBtn').style.display = 'inline-block';
         } else {
           updateAuthUI(false);
         }
-        document.getElementById('teacherPanel').style.display = 'none';
       }
 
       if (res.leaderboard) {
@@ -371,7 +378,11 @@
   }
 
   window.onload = () => {
-    if (idToken) {
+    // Instant synchronous state restoration from cache
+    const cachedIsTeacher = localStorage.getItem('cached_is_teacher') === 'true';
+    if (idToken && cachedIsTeacher) {
+      updateAuthUI(true, localStorage.getItem('cached_user_email') || '');
+    } else if (idToken) {
       updateAuthUI(true);
     } else {
       updateAuthUI(false);
