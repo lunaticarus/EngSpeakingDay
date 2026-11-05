@@ -51,6 +51,10 @@
       padding: 32px 24px;
       max-width: 420px;
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
     }
 
     .loader-bar {
@@ -59,7 +63,6 @@
       border: 2px solid var(--dp-color-ink);
       background: var(--dp-color-ground);
       overflow: hidden;
-      margin-top: 12px;
     }
 
     .loader-progress {
@@ -74,13 +77,27 @@
       100% { transform: translateX(250%); }
     }
 
+    .btn-guest {
+      background: var(--dp-color-ground);
+      color: var(--dp-color-ink);
+      border: 3px solid var(--dp-color-ink);
+      padding: 8px 16px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 3px 3px 0px var(--dp-color-ink);
+      width: 100%;
+    }
+    .btn-guest:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--dp-color-ink); }
+
     /* Main Container */
     .container { 
       display: flex; 
       flex-direction: column; 
       min-height: 100vh; 
       border: 3px solid var(--dp-color-ink); 
-      visibility: hidden; /* Hidden until preloaded */
+      visibility: hidden; /* Hidden until initial load finishes */
     }
     @media (min-width: 900px) { .container { flex-direction: row; } }
 
@@ -165,12 +182,22 @@
 </head>
 <body>
 
-<!-- LANDING OVERLAY -->
+<!-- Hidden Google Credential Listener -->
+<div id="g_id_onload" data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
+
+<!-- LANDING OVERLAY (With Google Login inside) -->
 <div id="landingOverlay">
   <div class="landing-box">
-    <h1 style="font-size:1.8rem; margin-bottom:8px;">English Speaking Day</h1>
-    <p style="font-weight:700; font-size:0.9rem; text-transform:uppercase;" id="landingStatus">Preloading Leaderboard & Session...</p>
-    <div class="loader-bar"><div class="loader-progress"></div></div>
+    <h1 style="font-size:1.8rem;">English Speaking Day</h1>
+    <p style="font-weight:700; font-size:0.85rem; text-transform:uppercase;" id="landingStatus">Sign in with Teacher Account</p>
+    
+    <!-- Google Login Button Container inside Landing Screen -->
+    <div id="authWrapper" style="display:inline-block; margin: 4px 0;">
+      <div class="g_id_signin" id="googleSignInBtn" data-type="standard" data-size="large" data-theme="outline"></div>
+    </div>
+
+    <button class="btn-guest" onclick="proceedAsGuest()">View Leaderboard (Public)</button>
+    <div class="loader-bar" id="landingLoader" style="display:none;"><div class="loader-progress"></div></div>
   </div>
 </div>
 
@@ -179,13 +206,6 @@
     <div class="header-bar">
       <h1>English Speaking Day</h1>
       <div style="display:flex; align-items:center; gap:8px;">
-        <div id="g_id_onload" data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
-        
-        <!-- Strict Display Wrapper for Google Sign-In -->
-        <div id="authWrapper" style="display:inline-block;">
-          <div class="g_id_signin" id="googleSignInBtn" data-type="standard" data-size="small" data-theme="outline"></div>
-        </div>
-        
         <button id="logoutBtn" class="btn-square" style="display:none; padding:4px 8px; font-size:0.75rem; background:#ef4444;" onclick="logout()">Logout</button>
         <div class="user-badge" id="userBadge">Public Mode</div>
       </div>
@@ -334,31 +354,31 @@
     pendingStudentData = null;
   }
 
-  // Strict Authentication & Header Button Manager
   function updateAuthUI(isLoggedIn, userEmail = '') {
-    const authWrapper = document.getElementById('authWrapper');
     const logoutBtn = document.getElementById('logoutBtn');
     const userBadge = document.getElementById('userBadge');
     const teacherPanel = document.getElementById('teacherPanel');
-
     const emailToDisplay = userEmail || localStorage.getItem('cached_user_email') || '';
 
     if (isLoggedIn) {
-      if (authWrapper) authWrapper.style.display = 'none'; // Completely hide login container
       if (logoutBtn) logoutBtn.style.display = 'inline-block';
       userBadge.innerText = emailToDisplay ? `Teacher: ${emailToDisplay}` : 'Teacher Terminal';
       if (teacherPanel) teacherPanel.style.display = 'flex';
     } else {
-      if (authWrapper) authWrapper.style.display = 'inline-block'; // Show login container
       if (logoutBtn) logoutBtn.style.display = 'none';
       userBadge.innerText = 'Public Mode';
       if (teacherPanel) teacherPanel.style.display = 'none';
     }
   }
 
+  function proceedAsGuest() {
+    document.getElementById('landingOverlay').style.display = 'none';
+    document.getElementById('mainContainer').style.visibility = 'visible';
+  }
+
   function handleCredentialResponse(response) {
-    document.getElementById('landingOverlay').style.display = 'flex';
     document.getElementById('landingStatus').innerText = "Authenticating Teacher...";
+    document.getElementById('landingLoader').style.display = 'block';
     idToken = response.credential;
     localStorage.setItem('google_id_token', idToken);
     loadInitialData();
@@ -368,7 +388,7 @@
     idToken = '';
     localStorage.clear();
     updateAuthUI(false);
-    loadInitialData();
+    location.reload(); // Hard reset back to Landing Screen
   }
 
   async function loadInitialData() {
@@ -387,17 +407,18 @@
         localStorage.setItem('cached_students_db', JSON.stringify(res.studentsMap || {}));
         window.dropdownOpts = { classes: res.classes || [], groups: res.groups || [] };
         updateLookupDropdown();
+
+        // Dismiss landing screen if logged in as Teacher
+        document.getElementById('landingOverlay').style.display = 'none';
+        document.getElementById('mainContainer').style.visibility = 'visible';
       } else {
         localStorage.removeItem('cached_user_email');
         localStorage.removeItem('cached_is_teacher');
-        
+        updateAuthUI(false);
+
         if (idToken) {
-          document.getElementById('userBadge').innerText = res.userEmail ? `User: ${res.userEmail} (No Access)` : 'Public Mode';
-          document.getElementById('teacherPanel').style.display = 'none';
-          document.getElementById('authWrapper').style.display = 'none';
-          document.getElementById('logoutBtn').style.display = 'inline-block';
-        } else {
-          updateAuthUI(false);
+          document.getElementById('landingStatus').innerText = "Account not in Teachers sheet!";
+          document.getElementById('landingLoader').style.display = 'none';
         }
       }
 
@@ -407,20 +428,15 @@
       }
     } catch (e) {
       console.error("Init Error:", e);
-    } finally {
-      // Reveal main UI after preloading is complete
-      document.getElementById('landingOverlay').style.display = 'none';
-      document.getElementById('mainContainer').style.visibility = 'visible';
     }
   }
 
   window.onload = () => {
-    // Initial silent check
     const cachedIsTeacher = localStorage.getItem('cached_is_teacher') === 'true';
     if (idToken && cachedIsTeacher) {
+      document.getElementById('landingStatus').innerText = "Loading Session...";
+      document.getElementById('landingLoader').style.display = 'block';
       updateAuthUI(true, localStorage.getItem('cached_user_email') || '');
-    } else if (idToken) {
-      updateAuthUI(true);
     } else {
       updateAuthUI(false);
     }
