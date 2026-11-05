@@ -226,13 +226,13 @@
     <div class="header-bar">
       <h1>English Speaking Day</h1>
       <div style="display:flex; align-items:center; gap:8px;">
-        <!-- Google Sign-in Button Configuration -->
         <div id="g_id_onload"
              data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com"
              data-callback="handleCredentialResponse"
              data-auto_prompt="false">
         </div>
         <div class="g_id_signin" data-type="standard" data-size="small" data-theme="outline"></div>
+        <button id="logoutBtn" class="btn-square" style="display:none; padding:4px 8px; font-size:0.75rem; background:#ef4444;" onclick="logout()">Logout</button>
         <div class="user-badge" id="userBadge">Public Mode</div>
       </div>
     </div>
@@ -317,16 +317,32 @@
   const beepSuccess = new Audio('https://actions.google.com/sounds/v1/ui/probes_tone.ogg');
   const beepError = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
 
-  // Google 官方登入成功 Callback
+  // Google 登入 Callback
   function handleCredentialResponse(response) {
     idToken = response.credential;
     localStorage.setItem('google_id_token', idToken);
-    loadInitialData();
+    
+    const signinBtn = document.querySelector('.g_id_signin');
+    if (signinBtn) signinBtn.style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+
+    loadInitialData(idToken);
+  }
+
+  function logout() {
+    idToken = '';
+    localStorage.removeItem('google_id_token');
+    const signinBtn = document.querySelector('.g_id_signin');
+    if (signinBtn) signinBtn.style.display = 'block';
+    document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('teacherPanel').style.display = 'none';
+    document.getElementById('userBadge').innerText = 'Public Mode';
+    loadInitialData('');
   }
 
   async function apiGet(action, params = {}) {
     params.action = action;
-    params.idToken = idToken;
+    params.idToken = params.idToken || idToken;
     const queryString = new URLSearchParams(params).toString();
     const res = await fetch(`${GAS_API_URL}?${queryString}`, { redirect: 'follow' });
     return await res.json();
@@ -345,20 +361,25 @@
   }
 
   window.onload = () => {
-    loadInitialData();
+    loadInitialData(idToken);
     setInterval(() => {
       if (document.getElementById('liveRefresh').checked) refreshLeaderboard();
     }, 12000);
   };
 
-  async function loadInitialData() {
+  async function loadInitialData(explicitToken) {
     try {
-      const data = await apiGet('getInitialData');
+      const targetToken = explicitToken !== undefined ? explicitToken : idToken;
+      const data = await apiGet('getInitialData', { idToken: targetToken });
       const b = document.getElementById('userBadge');
+      const signinBtn = document.querySelector('.g_id_signin');
+      const logoutBtn = document.getElementById('logoutBtn');
       
       if (data.isTeacher) {
         b.innerText = `Teacher: ${data.userEmail}`;
         document.getElementById('teacherPanel').style.display = 'flex';
+        if (signinBtn) signinBtn.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'inline-block';
         loadOptions();
       } else {
         if (data.userEmail) {
@@ -366,6 +387,8 @@
         } else {
           b.innerText = 'Public Mode';
         }
+        if (signinBtn) signinBtn.style.display = 'block';
+        if (logoutBtn) logoutBtn.style.display = 'none';
         document.getElementById('teacherPanel').style.display = 'none';
       }
       renderLeaderboards(data.leaderboard);
