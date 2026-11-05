@@ -117,7 +117,7 @@
 <div class="container">
   <div class="plane-main">
     <div class="header-bar">
-      <h1>🌟 English Speaking Day 🌟</h1>
+      <h1>🌟English Speaking Day🌟</h1>
       <div style="display:flex; align-items:center; gap:8px;">
         <div id="g_id_onload" data-client_id="99161504548-ujm0nvlq3mdf70dcq6qd7o9dmj2av54m.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_prompt="false"></div>
         <div class="g_id_signin" id="googleSignInContainer" data-type="standard" data-size="small" data-theme="outline"></div>
@@ -191,7 +191,8 @@
         <select id="lookupValue" style="flex:1;"></select>
         <button class="btn-square" onclick="lookupScores()">Search</button>
       </div>
-      <div id="lookupResults" style="max-height:160px; overflow-y:auto; border:2px solid black; padding:6px; margin-top:6px; display:none;"></div>
+      <!-- Increased max-height from 160px to 340px for comfortable reading -->
+      <div id="lookupResults" style="max-height:340px; overflow-y:auto; border:2px solid black; padding:6px; margin-top:6px; display:none; background:#ffffff;"></div>
     </div>
   </div>
 </div>
@@ -302,7 +303,6 @@
     pendingStudentData = null;
   }
 
-  // Consistent Authentication UI Sync
   function updateAuthUI(isLoggedIn, userEmail = '') {
     const googleBtn = document.getElementById('googleSignInContainer');
     const logoutBtn = document.getElementById('logoutBtn');
@@ -378,7 +378,6 @@
   }
 
   window.onload = () => {
-    // Instant synchronous state restoration from cache
     const cachedIsTeacher = localStorage.getItem('cached_is_teacher') === 'true';
     if (idToken && cachedIsTeacher) {
       updateAuthUI(true, localStorage.getItem('cached_user_email') || '');
@@ -601,7 +600,7 @@
     document.getElementById('lookupValue').innerHTML = (arr || []).map(a => `<option value="${a}">${a}</option>`).join('');
   }
 
-async function lookupScores() {
+  async function lookupScores() {
     const type = document.getElementById('lookupType').value;
     const val = document.getElementById('lookupValue').value;
     const start = document.getElementById('startDate').value;
@@ -619,13 +618,13 @@ async function lookupScores() {
         filterValue: val, 
         startDate: start, 
         endDate: end,
-        idToken: idToken // Pass teacher authentication token
+        idToken: idToken
       }).toString();
       
       const res = await (await fetch(`${GAS_API_URL}?${qs}`)).json();
       
       if (!res.success) {
-        document.getElementById('lookupResults').innerHTML = res.message || 'Permission denied or lookup failed.';
+        document.getElementById('lookupResults').innerHTML = res.message || 'Lookup failed.';
         return;
       }
 
