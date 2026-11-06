@@ -367,7 +367,7 @@
       osc1.type = 'sawtooth'; osc2.type = 'square';
       osc1.frequency.setValueAtTime(150, now);
       osc1.frequency.setValueAtTime(110, now + 0.12);
-      osc2.frequency.setValueAtTime(155, now); // Slightly detuned for heavy resonance
+      osc2.frequency.setValueAtTime(155, now);
 
       gain.gain.setValueAtTime(0.4, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
@@ -393,17 +393,22 @@
     pendingStudentData = null;
   }
 
+  // Unified State & Authentication Manager
   function updateAuthUI(isLoggedIn, userEmail = '') {
     const logoutBtn = document.getElementById('logoutBtn');
     const userBadge = document.getElementById('userBadge');
     const teacherPanel = document.getElementById('teacherPanel');
+    const authWrapper = document.getElementById('authWrapper');
+
     const emailToDisplay = userEmail || localStorage.getItem('cached_user_email') || '';
 
     if (isLoggedIn) {
+      if (authWrapper) authWrapper.style.display = 'none'; // Hide Google login button
       if (logoutBtn) logoutBtn.style.display = 'inline-block';
       userBadge.innerText = emailToDisplay ? `Teacher: ${emailToDisplay}` : 'Teacher Terminal';
       if (teacherPanel) teacherPanel.style.display = 'flex';
     } else {
+      if (authWrapper) authWrapper.style.display = 'inline-block'; // Show Google login button
       if (logoutBtn) logoutBtn.style.display = 'none';
       userBadge.innerText = 'Public Mode';
       if (teacherPanel) teacherPanel.style.display = 'none';
@@ -418,6 +423,8 @@
   function handleCredentialResponse(response) {
     document.getElementById('landingStatus').innerText = "Authenticating Teacher...";
     document.getElementById('landingLoader').style.display = 'block';
+    if (document.getElementById('authWrapper')) document.getElementById('authWrapper').style.display = 'none';
+    
     idToken = response.credential;
     localStorage.setItem('google_id_token', idToken);
     loadInitialData();
@@ -447,6 +454,7 @@
         window.dropdownOpts = { classes: res.classes || [], groups: res.groups || [] };
         updateLookupDropdown();
 
+        // Dismiss landing screen cleanly
         document.getElementById('landingOverlay').style.display = 'none';
         document.getElementById('mainContainer').style.visibility = 'visible';
       } else {
@@ -457,6 +465,7 @@
         if (idToken) {
           document.getElementById('landingStatus').innerText = "Account not in Teachers sheet!";
           document.getElementById('landingLoader').style.display = 'none';
+          if (document.getElementById('authWrapper')) document.getElementById('authWrapper').style.display = 'inline-block';
         }
       }
 
@@ -470,10 +479,12 @@
   }
 
   window.onload = () => {
+    // Synchronous immediate check on page load
     const cachedIsTeacher = localStorage.getItem('cached_is_teacher') === 'true';
     if (idToken && cachedIsTeacher) {
-      document.getElementById('landingStatus').innerText = "Loading Session...";
+      document.getElementById('landingStatus').innerText = "RESTORING TEACHER SESSION...";
       document.getElementById('landingLoader').style.display = 'block';
+      if (document.getElementById('authWrapper')) document.getElementById('authWrapper').style.display = 'none';
       updateAuthUI(true, localStorage.getItem('cached_user_email') || '');
     } else {
       updateAuthUI(false);
