@@ -257,16 +257,17 @@
         <option value="all">All-Time Standing</option>
         <option value="today">Today's Live</option>
         <option value="thisWeek">This Week</option>
+        <option value="custom" hidden>Custom Range</option>
       </select>
 
       <div class="date-row">
         <div class="date-field-group">
           <label for="startDate">From:</label>
-          <input type="date" id="startDate" onchange="refreshLeaderboard()">
+          <input type="date" id="startDate" onchange="onCustomDateChange()">
         </div>
         <div class="date-field-group">
           <label for="endDate">To:</label>
-          <input type="date" id="endDate" onchange="refreshLeaderboard()">
+          <input type="date" id="endDate" onchange="onCustomDateChange()">
         </div>
       </div>
     </div>
@@ -296,7 +297,7 @@
     <button class="action-btn-mobile" id="scanBtn" onclick="toggleScanner()">START SCANNER</button>
     
     <div class="manual-entry-row">
-      <input type="text" id="manualId" class="input-rect" placeholder="Manual Student ID" enterkeyhint="go" onkeypress="if(event.key==='Enter') submitManual()">
+      <input type="text" id="manualId" class="input-rect" placeholder="Manual Student ID" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" onkeypress="if(event.key==='Enter') submitManual()">
       <button type="button" class="btn-submit-id" onclick="submitManual()">Submit</button>
     </div>
 
@@ -316,7 +317,7 @@
 </div>
 
 <!-- UNIFIED MODAL -->
-<div id="unifiedModal" class="modal-overlay">
+<div id="unifiedModal" class="modal-overlay" onclick="if(event.target === this && !isSubmittingPoint) closeModal()">
   <div class="modal-card">
     <div id="modalTitle" class="modal-title"></div>
     <div id="modalBody"></div>
@@ -331,6 +332,8 @@
   let idToken = localStorage.getItem('google_id_token') || '';
   let pendingStudentData = null;
   let isSubmittingPoint = false;
+  let activeRequestId = 0;
+  let leaderboardReqSeq = 0;
   let successAutoCloseTimer = null;
 
   function escapeHtml(str) {
@@ -459,6 +462,12 @@
     isSubmittingPoint = false;
   }
 
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !isSubmittingPoint && document.getElementById('unifiedModal').style.display === 'flex') {
+      closeModal();
+    }
+  });
+
   function handleExpiredSession() {
     idToken = '';
     localStorage.removeItem('google_id_token');
@@ -520,6 +529,14 @@
     if (cachedLb) {
       try { renderLeaderboards(JSON.parse(cachedLb)); } catch (_) {}
     }
+
+    const cachedOpts = localStorage.getItem('cached_dropdown_opts');
+    if (cachedOpts) {
+      try {
+        window.dropdownOpts = JSON.parse(cachedOpts);
+        updateLookupDropdown();
+      } catch (_) {}
+    }
     
     try {
       const qs = new URLSearchParams({ action: 'init', idToken: idToken }).toString();
@@ -532,6 +549,7 @@
 
         localStorage.setItem('cached_students_db', JSON.stringify(res.studentsMap || {}));
         window.dropdownOpts = { classes: res.classes || [], groups: res.groups || [] };
+        localStorage.setItem('cached_dropdown_opts', JSON.stringify(window.dropdownOpts));
         updateLookupDropdown();
 
         document.getElementById('landingOverlay').style.display = 'none';
@@ -552,12 +570,17 @@
         }
       }
 
-      if (res.leaderboard) {
+      if (res.leaderboard && !document.getElementById('startDate').value && !document.getElementById('endDate').value) {
         localStorage.setItem('cached_leaderboard', JSON.stringify(res.leaderboard));
         renderLeaderboards(res.leaderboard);
       }
     } catch (e) {
       console.error("Init Error:", e);
+      // Offline / slow-network fallback if teacher session & student DB are already cached
+      if (idToken && localStorage.getItem('cached_is_teacher') === 'true' && localStorage.getItem('cached_students_db')) {
+        document.getElementById('landingOverlay').style.display = 'none';
+        document.getElementById('mainContainer').style.visibility = 'visible';
+      }
     }
   }
 
@@ -573,7 +596,11 @@
     }
 
     loadInitialData();
-    setInterval(() => refreshLeaderboard(true), 15000);
+    setInterval(() => {
+      if (!isSubmittingPoint && document.getElementById('unifiedModal').style.display !== 'flex') {
+        refreshLeaderboard(true);
+      }
+    }, 15000);
     document.getElementById('lookupType').addEventListener('change', updateLookupDropdown);
   };
 
@@ -586,6 +613,7 @@
     } else {
       btn.innerText = "INITIALIZING...";
       btn.disabled = true;
+      document.getElementById('reader').innerHTML = '';
       wrapper.classList.add('active');
 
       try {
@@ -599,9 +627,12 @@
         btn.innerText = "STOP SCANNER";
       } catch (err) {
         console.error("Camera Start Error:", err);
+        html5QrcodeScanner = null;
+        document.getElementById('reader').innerHTML = '';
+        wrapper.classList.remove('active');
+        btn.innerText = "START SCANNER";
         playSoundEffect('error');
         renderModal("Camera Error", "error", `<div style="font-weight:700; text-align:center;">Could not access camera. Check permissions.</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
-        await stopScanner();
       } finally {
         btn.disabled = false;
       }
@@ -653,6 +684,13 @@
     const cleanId = String(scannedId).trim();
     const upperId = cleanId.toUpperCase();
     const studentsMap = JSON.parse(localStorage.getItem('cached_students_db') || '{}');
+
+    if (Object.keys(studentsMap).length === 0) {
+      playSoundEffect('error');
+      renderModal("Loading Database", "error", `<div style="font-weight:700; text-align:center;">Student list is still syncing.<br>Please wait a moment and try again.</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
+      return;
+    }
+
     const student = studentsMap[cleanId] 
                  || studentsMap[upperId] 
                  || studentsMap[cleanId.replace(/^0+/, '')] 
@@ -699,6 +737,7 @@
   async function confirmPointAward() {
     if (!pendingStudentData || isSubmittingPoint) return;
     isSubmittingPoint = true;
+    const reqId = ++activeRequestId;
     const student = pendingStudentData;
     
     document.getElementById('modalActions').innerHTML = `<div style="text-align:center; width:100%; font-weight:bold;">Processing...</div>`;
@@ -709,6 +748,8 @@
         body: JSON.stringify({ action: 'recordPoint', idToken: idToken, studentId: student.id })
       })).json();
 
+      if (reqId !== activeRequestId) return;
+
       if (res.success) {
         playSoundEffect('success');
         
@@ -718,10 +759,11 @@
 
         const studentsMap = JSON.parse(localStorage.getItem('cached_students_db') || '{}');
         const newScore = (Number(student.totalScore) || 0) + 1;
-        if (studentsMap[student.id]) {
-          studentsMap[student.id].totalScore = newScore;
-          localStorage.setItem('cached_students_db', JSON.stringify(studentsMap));
-        }
+        const sid = String(student.id);
+        [sid, sid.toUpperCase(), sid.replace(/^0+/, '')].forEach(k => {
+          if (studentsMap[k]) studentsMap[k].totalScore = newScore;
+        });
+        localStorage.setItem('cached_students_db', JSON.stringify(studentsMap));
 
         renderModal(
           "✓ Point Awarded (+1)",
@@ -738,7 +780,14 @@
         }, 2000);
 
         refreshLeaderboard(true);
+        if (document.getElementById('lookupResults').style.display === 'block') {
+          lookupScores();
+        }
       } else if (res.cooldown) {
+        let recentScans = JSON.parse(localStorage.getItem('recent_scans') || '{}');
+        recentScans[student.id] = Date.now();
+        localStorage.setItem('recent_scans', JSON.stringify(recentScans));
+
         playSoundEffect('error');
         renderModal("Cooldown Active", "error", 
           `<div style="font-weight:700; text-align:center;">⚠️ ${escapeHtml(res.message)}</div>`,
@@ -753,10 +802,13 @@
         renderModal("Error", "error", `<div style="font-weight:700; text-align:center;">${escapeHtml(res.message || 'Unknown error.')}</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
       }
     } catch (err) {
+      if (reqId !== activeRequestId) return;
       playSoundEffect('error');
       renderModal("Network Error", "error", `<div style="font-weight:700; text-align:center;">Failed to connect to server.</div>`, `<button class="btn-cancel" onclick="closeModal()">CLOSE</button>`);
     } finally {
-      isSubmittingPoint = false;
+      if (reqId === activeRequestId) {
+        isSubmittingPoint = false;
+      }
     }
   }
 
@@ -773,21 +825,43 @@
       const sunday = new Date(now); sunday.setDate(now.getDate() - day + 7);
       document.getElementById('startDate').value = formatLocalDate(monday);
       document.getElementById('endDate').value = formatLocalDate(sunday);
-    } else {
+    } else if (val === 'all') {
       document.getElementById('startDate').value = "";
       document.getElementById('endDate').value = "";
     }
     refreshLeaderboard(false);
+    if (document.getElementById('lookupResults').style.display === 'block') {
+      lookupScores();
+    }
+  }
+
+  function onCustomDateChange() {
+    const startInput = document.getElementById('startDate');
+    const endInput = document.getElementById('endDate');
+    if (startInput.value && endInput.value && startInput.value > endInput.value) {
+      const tmp = startInput.value;
+      startInput.value = endInput.value;
+      endInput.value = tmp;
+    }
+    document.getElementById('presetRange').value = (!startInput.value && !endInput.value) ? 'all' : 'custom';
+    refreshLeaderboard(false);
+    if (document.getElementById('lookupResults').style.display === 'block') {
+      lookupScores();
+    }
   }
 
   async function refreshLeaderboard(isSilent = false) {
     const start = document.getElementById('startDate').value;
     const end = document.getElementById('endDate').value;
+    const seq = ++leaderboardReqSeq;
     try {
       const qs = new URLSearchParams({ action: 'leaderboard', startDate: start, endDate: end }).toString();
       const data = await (await fetch(`${GAS_API_URL}?${qs}`)).json();
+      if (seq !== leaderboardReqSeq) return;
       if (data && data.students) {
-        localStorage.setItem('cached_leaderboard', JSON.stringify(data));
+        if (!start && !end) {
+          localStorage.setItem('cached_leaderboard', JSON.stringify(data));
+        }
         renderLeaderboards(data);
       }
     } catch (e) { if (!isSilent) console.error(e); }
