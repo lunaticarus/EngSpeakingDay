@@ -148,8 +148,25 @@
     .action-btn-mobile { background: var(--dp-color-ground); color: var(--dp-color-ink); border: 3px solid var(--dp-color-ink); padding: 12px; width: 100%; font-weight: 800; font-size: 1rem; text-transform: uppercase; cursor: pointer; box-shadow: 4px 4px 0px var(--dp-color-ink); transition: all 0.1s; margin: 8px 0; }
     .action-btn-mobile:active { box-shadow: 0px 0px 0px var(--dp-color-ink); transform: translate(4px, 4px); }
 
-    .input-rect { background: var(--dp-color-field); color: #fff; border: 3px solid var(--dp-color-ink); padding: 10px 12px; font-size: 1rem; font-weight: 700; width: 100%; outline: none; }
+    .manual-entry-row { display: flex; gap: 8px; align-items: stretch; width: 100%; }
+    .input-rect { flex: 1; min-width: 0; background: var(--dp-color-field); color: #fff; border: 3px solid var(--dp-color-ink); padding: 10px 12px; font-size: 1rem; font-weight: 700; outline: none; }
     .input-rect::placeholder { color: rgba(255,255,255,0.7); }
+
+    .btn-submit-id {
+      background: var(--dp-color-field-support);
+      color: var(--dp-color-ink);
+      border: 3px solid var(--dp-color-ink);
+      padding: 0 16px;
+      font-family: var(--dp-typography-face);
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 3px 3px 0px var(--dp-color-ink);
+      transition: all 0.1s;
+      white-space: nowrap;
+    }
+    .btn-submit-id:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0px var(--dp-color-ink); }
 
     .controls-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
     select { padding: 6px 10px; border: 2.5px solid var(--dp-color-ink); font-weight: 700; font-size: 0.85rem; background: #ffffff; width: 100%; max-width: 260px; }
@@ -261,8 +278,9 @@
     </div>
     <button class="action-btn-mobile" id="scanBtn" onclick="toggleScanner()">START SCANNER</button>
     
-    <div>
-      <input type="text" id="manualId" class="input-rect" placeholder="Manual Student ID Entry" onkeypress="if(event.key==='Enter') submitManual()">
+    <div class="manual-entry-row">
+      <input type="text" id="manualId" class="input-rect" placeholder="Manual Student ID" enterkeyhint="go" onkeypress="if(event.key==='Enter') submitManual()">
+      <button type="button" class="btn-submit-id" onclick="submitManual()">Submit</button>
     </div>
 
     <div class="lookup-container">
